@@ -1,0 +1,91 @@
+<resources>
+    <string name="app_name">Hitchhike</string>
+    <string name="app_tagline">Caronas universitárias seguras e sustentáveis</string>
+    <string name="app_campus">Senac – Santo Amaro</string>
+
+    <string name="login_title">Entrar</string>
+    <string name="login_subtitle">Use seu e-mail institucional do Senac</string>
+    <string name="hint_email">E-mail institucional</string>
+    <string name="hint_senha">Senha</string>
+    <string name="action_entrar">Entrar</string>
+    <string name="action_criar_conta">Criar conta</string>
+    <string name="action_esqueci_senha">Esqueci minha senha</string>
+    <string name="login_sem_conta">Ainda não tem cadastro?</string>
+
+    <string name="cadastro_title">Cadastro</string>
+    <string name="cadastro_subtitle">Acesso exclusivo para a comunidade acadêmica</string>
+    <string name="hint_nome">Nome completo</string>
+    <string name="hint_curso">Curso</string>
+    <string name="hint_instituicao">Instituição</string>
+    <string name="hint_confirmar_senha">Confirmar senha</string>
+    <string name="perfil_inicial">Como você quer começar?</string>
+    <string name="papel_passageiro">Passageiro</string>
+    <string name="papel_motorista">Motorista</string>
+    <string name="aceite_termos">Li e aceito os Termos de Uso e a Política de Privacidade do Hitchhike.</string>
+    <string name="action_cadastrar">Cadastrar</string>
+    <string name="cadastro_ja_tem_conta">Já possui conta? Entrar</string>
+    <string name="instituicao_padrao">Centro Universitário Senac – Santo Amaro</string>
+
+    <string name="recuperar_title">Recuperar senha</string>
+    <string name="recuperar_subtitle">Enviaremos um código de verificação para o e-mail institucional cadastrado.</string>
+    <string name="action_enviar_codigo">Enviar código</string>
+    <string name="hint_codigo">Código de verificação</string>
+    <string name="hint_nova_senha">Nova senha</string>
+    <string name="action_redefinir">Redefinir senha</string>
+
+    <string name="perfil_title">Meu perfil</string>
+    <string name="perfil_alternar">Alternar papel nesta conta</string>
+    <string name="perfil_plano">Plano de uso</string>
+    <string name="perfil_reputacao">Reputação</string>
+    <string name="perfil_dados_pessoais">Dados pessoais</string>
+    <string name="perfil_condutor">Verificação de condutor</string>
+    <string name="perfil_veiculo">Veículo</string>
+    <string name="action_sair">Sair da conta</string>
+    <string name="action_completar_motorista">Cadastrar CNH e veículo</string>
+    <string name="action_editar_veiculo">Atualizar dados do veículo</string>
+    <string name="banner_motorista_bloqueado">Oferecer carona fica disponível após o cadastro da CNH e dos dados do veículo (placa, modelo e cor).</string>
+    <string name="status_pendente">Validação pendente</string>
+    <string name="status_validado">Condutor validado</string>
+    <string name="plano_gratuito">Gratuito · até 2 caronas por semana</string>
+    <string name="plano_premium">Premium · até 5 caronas por semana</string>
+    <string name="action_plano_premium">Assinar plano Premium</string>
+    <string name="sem_avaliacoes">Ainda não há avaliações. A média aparece após as viagens.</string>
+
+    <string name="verificacao_title">Verificação de condutor</string>
+    <string name="hint_cnh">Número da CNH</string>
+    <string name="hint_placa">Placa do veículo</string>
+    <string name="hint_modelo">Modelo</string>
+    <string name="hint_cor">Cor</string>
+    <string name="action_anexar_cnh">Marcar CNH como anexada</string>
+    <string name="cnh_anexada">Documento da CNH registrado nesta conta</string>
+    <string name="action_salvar_condutor">Salvar e habilitar motorista</string>
+
+    <string name="erro_email_institucional">Use um e-mail @senac.br ou @sp.senac.br</string>
+    <string name="erro_campos_obrigatorios">Preencha todos os campos obrigatórios</string>
+    <string name="erro_senhas_diferentes">As senhas não coincidem</string>
+    <string name="erro_senha_curta">A senha deve ter pelo menos 6 caracteres</string>
+    <string name="erro_email_existente">Este e-mail já está cadastrado</string>
+    <string name="erro_login">E-mail ou senha inválidos</string>
+    <string name="erro_termos">É necessário aceitar os Termos de Uso</string>
+    <string name="erro_email_nao_encontrado">E-mail não encontrado</string>
+    <string name="erro_codigo">Código de verificação inválido</string>
+    <string name="erro_placa_duplicada">Esta placa já está cadastrada por outro usuário</string>
+    <string name="erro_cnh">Informe a CNH e anexe o documento</string>
+
+    <string name="sucesso_cadastro">Cadastro realizado com sucesso</string>
+    <string name="sucesso_codigo_enviado">Código enviado para o e-mail institucional (demonstração: %1$s)</string>
+    <string name="sucesso_senha">Senha redefinida. Faça login novamente.</string>
+    <string name="sucesso_condutor">Dados do condutor salvos. Você já pode atuar como motorista.</string>
+    <string name="sucesso_plano">Plano Premium ativado nesta conta de demonstração.</string>
+
+    <string-array name="cursos_senac">
+        <item>Sistemas de Informação</item>
+        <item>Análise e Desenvolvimento de Sistemas</item>
+        <item>Gestão da Tecnologia da Informação</item>
+        <item>Ciência da Computação</item>
+        <item>Design</item>
+        <item>Administração</item>
+        <item>Docente</item>
+        <item>Outro</item>
+    </string-array>
+</resources>

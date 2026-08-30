@@ -1,0 +1,9 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <style name="Base.Theme.Hitchhike" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/hh_green_light</item>
+        <item name="colorOnPrimary">@color/hh_text</item>
+        <item name="android:statusBarColor">@color/hh_green_dark</item>
+        <item name="android:navigationBarColor">@color/hh_green_dark</item>
+        <item name="android:windowBackground">#FF121A16</item>
+    </style>
+</resources>

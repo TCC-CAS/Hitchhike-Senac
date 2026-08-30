@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF1A1A1A</color>
+    <color name="white">#FFFFFFFF</color>
+
+    <color name="hh_green">#FF1B7A4E</color>
+    <color name="hh_green_dark">#FF145C3A</color>
+    <color name="hh_green_light">#FF2E9B68</color>
+    <color name="hh_mint">#FFE8F5EF</color>
+    <color name="hh_background">#FFF4F7F5</color>
+    <color name="hh_surface">#FFFFFFFF</color>
+    <color name="hh_text">#FF1A2E24</color>
+    <color name="hh_text_secondary">#FF5C6B64</color>
+    <color name="hh_outline">#FFD5E3DB</color>
+    <color name="hh_error">#FFB3261E</color>
+    <color name="hh_warning">#FFB26A00</color>
+    <color name="hh_warning_bg">#FFFFF4E0</color>
+    <color name="hh_success">#FF1B7A4E</color>
+</resources>

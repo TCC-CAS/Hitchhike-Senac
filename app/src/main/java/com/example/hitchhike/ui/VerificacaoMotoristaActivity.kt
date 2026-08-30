@@ -1,0 +1,80 @@
+package com.example.hitchhike.ui
+
+import android.content.Intent
+import android.os.Bundle
+import android.view.View
+import android.widget.Toast
+import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
+import com.example.hitchhike.R
+import com.example.hitchhike.data.SessionManager
+import com.example.hitchhike.data.UsuarioRepository
+import com.example.hitchhike.databinding.ActivityVerificacaoMotoristaBinding
+import kotlinx.coroutines.launch
+
+class VerificacaoMotoristaActivity : AppCompatActivity() {
+    private lateinit var binding: ActivityVerificacaoMotoristaBinding
+    private lateinit var repository: UsuarioRepository
+    private lateinit var session: SessionManager
+    private var cnhAnexada = false
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+        binding = ActivityVerificacaoMotoristaBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        binding.rootVerificacao.applySystemInsets()
+
+        repository = UsuarioRepository(this)
+        session = SessionManager(this)
+
+        lifecycleScope.launch {
+            val usuario = repository.buscar(session.usuarioId()) ?: return@launch
+            binding.etCnh.setText(usuario.cnhNumero.orEmpty())
+            binding.etPlaca.setText(usuario.veiculoPlaca.orEmpty())
+            binding.etModelo.setText(usuario.veiculoModelo.orEmpty())
+            binding.etCor.setText(usuario.veiculoCor.orEmpty())
+            cnhAnexada = usuario.cnhAnexada
+            atualizarStatusAnexo()
+        }
+
+        binding.btnAnexarCnh.setOnClickListener {
+            cnhAnexada = true
+            atualizarStatusAnexo()
+        }
+        binding.btnSalvar.setOnClickListener { salvar() }
+    }
+
+    private fun atualizarStatusAnexo() {
+        binding.tvCnhStatus.visibility = if (cnhAnexada) View.VISIBLE else View.GONE
+        binding.tvCnhStatus.text = getString(R.string.cnh_anexada)
+    }
+
+    private fun salvar() {
+        val cnh = binding.etCnh.text?.toString().orEmpty()
+        val placa = binding.etPlaca.text?.toString().orEmpty()
+        val modelo = binding.etModelo.text?.toString().orEmpty()
+        val cor = binding.etCor.text?.toString().orEmpty()
+        if (cnh.isBlank() || !cnhAnexada || placa.isBlank() || modelo.isBlank() || cor.isBlank()) {
+            Toast.makeText(this, getString(R.string.erro_cnh), Toast.LENGTH_SHORT).show()
+            return
+        }
+        lifecycleScope.launch {
+            val usuario = repository.buscar(session.usuarioId()) ?: return@launch
+            val resultado = repository.salvarCondutor(usuario, cnh, cnhAnexada, placa, modelo, cor)
+            resultado.fold(
+                onSuccess = {
+                    Toast.makeText(this@VerificacaoMotoristaActivity, getString(R.string.sucesso_condutor), Toast.LENGTH_SHORT).show()
+                    startActivity(Intent(this@VerificacaoMotoristaActivity, PerfilActivity::class.java).apply {
+                        flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
+                    })
+                    finish()
+                },
+                onFailure = {
+                    Toast.makeText(this@VerificacaoMotoristaActivity, getString(R.string.erro_placa_duplicada), Toast.LENGTH_SHORT).show()
+                }
+            )
+        }
+    }
+}

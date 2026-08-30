@@ -1,0 +1,35 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <style name="Base.Theme.Hitchhike" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/hh_green</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorPrimaryContainer">@color/hh_mint</item>
+        <item name="colorOnPrimaryContainer">@color/hh_green_dark</item>
+        <item name="colorSecondary">@color/hh_green_light</item>
+        <item name="android:statusBarColor">@color/hh_green_dark</item>
+        <item name="android:navigationBarColor">@color/hh_background</item>
+        <item name="android:windowBackground">@color/hh_background</item>
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="materialButtonStyle">@style/Widget.Hitchhike.Button</item>
+    </style>
+
+    <style name="Theme.Hitchhike" parent="Base.Theme.Hitchhike" />
+
+    <style name="Widget.Hitchhike.Button" parent="Widget.Material3.Button">
+        <item name="android:minHeight">56dp</item>
+        <item name="cornerRadius">16dp</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textSize">16sp</item>
+    </style>
+
+    <style name="Widget.Hitchhike.Button.Outlined" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="android:minHeight">56dp</item>
+        <item name="cornerRadius">16dp</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="strokeColor">@color/hh_green</item>
+    </style>
+
+    <style name="TextAppearance.Hitchhike.Title" parent="TextAppearance.Material3.HeadlineMedium">
+        <item name="android:textColor">@color/hh_text</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+</resources>
