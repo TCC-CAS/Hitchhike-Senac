@@ -40,6 +40,43 @@ class UsuarioRepository(context: Context) {
         return if (usuario.senhaHash == PasswordHasher.hash(senha)) usuario else null
     }
 
+
+    suspend fun sincronizarPerfil(
+        nome: String,
+        curso: String,
+        instituicao: String,
+        email: String,
+        papel: PapelUsuario
+    ): Long {
+        val emailNorm = email.trim().lowercase()
+
+        val usuarioExistente = dao.buscarPorEmail(emailNorm)
+
+        if (usuarioExistente != null) {
+            dao.atualizar(
+                usuarioExistente.copy(
+                    nome = nome.trim(),
+                    curso = curso.trim(),
+                    instituicao = instituicao.trim(),
+                    papelAtivo = papel.name
+                )
+            )
+
+            return usuarioExistente.id
+        }
+
+        return dao.inserir(
+            UsuarioEntity(
+                nome = nome.trim(),
+                curso = curso.trim(),
+                instituicao = instituicao.trim(),
+                email = emailNorm,
+                senhaHash = "",
+                papelAtivo = papel.name
+            )
+        )
+    }
+
     suspend fun buscar(id: Long): UsuarioEntity? = dao.buscarPorId(id)
 
     suspend fun buscarPorEmail(email: String): UsuarioEntity? =
@@ -54,6 +91,7 @@ class UsuarioRepository(context: Context) {
         dao.atualizar(usuario.copy(papelAtivo = novoPapel.name))
     }
 
+
     suspend fun salvarCondutor(
         usuario: UsuarioEntity,
         cnh: String,
@@ -63,12 +101,15 @@ class UsuarioRepository(context: Context) {
         cor: String
     ): Result<Unit> {
         val placaNorm = placa.trim().uppercase()
+
         val existente = dao.buscarPorPlaca(placaNorm, usuario.id)
+
         if (existente != null) {
-            return Result.failure(IllegalStateException("placa_duplicada"))
+            return Result.failure(
+                IllegalStateException("placa_duplicada")
+            )
         }
-        val validado = cnhAnexada && cnh.isNotBlank() &&
-            placaNorm.isNotBlank() && modelo.isNotBlank() && cor.isNotBlank()
+
         dao.atualizar(
             usuario.copy(
                 cnhNumero = cnh.trim(),
@@ -76,14 +117,30 @@ class UsuarioRepository(context: Context) {
                 veiculoPlaca = placaNorm,
                 veiculoModelo = modelo.trim(),
                 veiculoCor = cor.trim(),
-                condutorValidado = validado,
+                condutorValidado = false,
                 papelAtivo = PapelUsuario.MOTORISTA.name
             )
         )
+
         return Result.success(Unit)
     }
+
 
     suspend fun atualizarPlano(usuario: UsuarioEntity, plano: PlanoAssinatura) {
         dao.atualizar(usuario.copy(plano = plano.name))
     }
+
+    suspend fun sincronizarValidacaoMotorista(
+        usuarioId: Long,
+        validado: Boolean
+    ) {
+        val usuario = dao.buscarPorId(usuarioId) ?: return
+
+        dao.atualizar(
+            usuario.copy(
+                condutorValidado = validado
+            )
+        )
+    }
+
 }

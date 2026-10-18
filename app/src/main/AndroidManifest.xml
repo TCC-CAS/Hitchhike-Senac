@@ -39,6 +39,23 @@
             android:name=".ui.VerificacaoMotoristaActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".ui.OferecerCaronaActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".ui.BuscarCaronaActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".ui.DetalheCaronaActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.MinhasCaronasActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.DocumentoLegalActivity"
+            android:exported="false" />
     </application>
 
 </manifest>

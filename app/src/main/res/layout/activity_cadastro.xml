@@ -99,7 +99,7 @@
             app:boxCornerRadiusBottomStart="16dp"
             app:boxCornerRadiusTopEnd="16dp"
             app:boxCornerRadiusTopStart="16dp"
-            app:helperText="Somente @senac.br ou @sp.senac.br">
+            app:helperText="Aluno: @senacsp.edu.br | Professor: @sp.senac.br">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etEmail"
@@ -184,13 +184,31 @@
                 android:text="@string/papel_motorista" />
         </RadioGroup>
 
-        <com.google.android.material.checkbox.MaterialCheckBox
-            android:id="@+id/cbTermos"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:minHeight="48dp"
-            android:text="@string/aceite_termos" />
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <com.google.android.material.checkbox.MaterialCheckBox
+                android:id="@+id/cbTermos"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:minWidth="48dp"
+                android:minHeight="48dp"
+                android:contentDescription="Aceitar Termos de Uso e Política de Privacidade" />
+
+            <TextView
+                android:id="@+id/tvTermos"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Li e aceito os Termos de Uso e a Política de Privacidade."
+                android:textColor="@color/hh_text"
+                android:textSize="13sp" />
+
+        </LinearLayout>
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnCadastrar"

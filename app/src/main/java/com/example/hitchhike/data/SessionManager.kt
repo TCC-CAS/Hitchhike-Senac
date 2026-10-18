@@ -1,49 +1,56 @@
+
 package com.example.hitchhike.data
 
 import android.content.Context
+import com.google.firebase.auth.FirebaseAuth
 
 class SessionManager(context: Context) {
-    private val prefs = context.getSharedPreferences("hitchhike_session", Context.MODE_PRIVATE)
+
+    private val prefs = context.getSharedPreferences(
+        "hitchhike_session",
+        Context.MODE_PRIVATE
+    )
+
+    private val auth = FirebaseAuth.getInstance()
 
     fun salvarSessao(usuarioId: Long) {
+        val usuarioFirebase = auth.currentUser
+
+        if (usuarioFirebase == null ||
+            !usuarioFirebase.isEmailVerified
+        ) {
+            encerrarSessao()
+            return
+        }
+
         prefs.edit()
             .putLong(KEY_USER_ID, usuarioId)
+            .putString(KEY_FIREBASE_UID, usuarioFirebase.uid)
             .putBoolean(KEY_LOGGED, true)
             .apply()
     }
 
-    fun usuarioId(): Long = prefs.getLong(KEY_USER_ID, -1L)
+    fun usuarioId(): Long =
+        prefs.getLong(KEY_USER_ID, -1L)
 
-    fun estaLogado(): Boolean = prefs.getBoolean(KEY_LOGGED, false) && usuarioId() > 0
+    fun estaLogado(): Boolean {
+        val usuarioFirebase = auth.currentUser ?: return false
+
+        return prefs.getBoolean(KEY_LOGGED, false) &&
+                usuarioId() > 0 &&
+                prefs.getString(KEY_FIREBASE_UID, null) ==
+                usuarioFirebase.uid &&
+                usuarioFirebase.isEmailVerified
+    }
 
     fun encerrarSessao() {
         prefs.edit().clear().apply()
-    }
-
-    fun salvarCodigoRecuperacao(email: String, codigo: String) {
-        prefs.edit()
-            .putString(KEY_RECOVERY_EMAIL, email.lowercase())
-            .putString(KEY_RECOVERY_CODE, codigo)
-            .apply()
-    }
-
-    fun codigoRecuperacaoValido(email: String, codigo: String): Boolean {
-        val savedEmail = prefs.getString(KEY_RECOVERY_EMAIL, null)
-        val savedCode = prefs.getString(KEY_RECOVERY_CODE, null)
-        return savedEmail == email.lowercase() && savedCode == codigo
-    }
-
-    fun limparCodigoRecuperacao() {
-        prefs.edit()
-            .remove(KEY_RECOVERY_EMAIL)
-            .remove(KEY_RECOVERY_CODE)
-            .apply()
+        auth.signOut()
     }
 
     companion object {
         private const val KEY_USER_ID = "user_id"
         private const val KEY_LOGGED = "logged"
-        private const val KEY_RECOVERY_EMAIL = "recovery_email"
-        private const val KEY_RECOVERY_CODE = "recovery_code"
+        private const val KEY_FIREBASE_UID = "firebase_uid"
     }
 }

@@ -13,3 +13,16 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# Android Studio
+/.idea/
+
+# Firebase
+/app/google-services.json
+
+# Documento do TCC
+/app/TCC2_Entrega.docx
+
+# Assinatura Android
+*.jks
+*.keystore

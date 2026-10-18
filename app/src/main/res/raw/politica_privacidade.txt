@@ -1,0 +1,28 @@
+Política de Privacidade da Plataforma Hitchhike
+
+Cláusula 1 – Responsáveis e finalidade
+Esta política descreve o tratamento de dados previsto para o Hitchhike, projeto acadêmico desenvolvido por Guilherme dos Santos Medeiros, Isabella Dichirico e Pedro Henrique Macedo Cunha. O canal de atendimento é hitchhike.suporte@gmail.com. A eventual entidade responsável pela operação futura, seus contatos e seus prestadores devem ser identificados antes da disponibilização do serviço ao público.
+Cláusula 2 – Dados de cadastro e autenticação
+O cadastro utiliza nome, e-mail institucional, curso, instituição e papel na conta. A senha é fornecida para autenticação e deve ser armazenada por mecanismo próprio de derivação, nunca em texto simples. A confirmação da caixa institucional e os registros de sessão devem ser limitados à finalidade de controle de acesso.
+Cláusula 3 – Dados do condutor e da viagem
+Para oferecer caronas, podem ser necessários dados da CNH e do veículo, como placa, modelo, cor e capacidade. A operação de viagens utiliza origem, destino, ponto de encontro, horários, solicitações e estados de participação. Avaliações e mensagens serão tratadas somente quando as respectivas funcionalidades estiverem disponíveis.
+Cláusula 4 – Finalidades e bases de tratamento
+Os dados devem ser utilizados para criar e administrar contas, organizar caronas e atender solicitações dos titulares. A execução das funcionalidades solicitadas deve observar a base legal adequada. Obrigações legais e prevenção de fraude exigem finalidade e necessidade documentadas. Quando o tratamento depender de consentimento, ele deverá ser específico e revogável; aceitar os termos não constitui autorização genérica para qualquer uso de dados.
+Cláusula 5 – Localização e permissões do dispositivo
+A busca deve permitir informar região manualmente quando a localização do aparelho não for necessária. O acesso à localização deve ser solicitado no momento de uso e pode ser revogado nas configurações do sistema. O escopo não prevê rastreamento contínuo em segundo plano. Câmera, imagens ou arquivos devem ser acessados somente para a finalidade informada e mediante os controles do dispositivo.
+Cláusula 6 – Acesso às informações da viagem
+Região aproximada e dados essenciais da oferta apoiam a busca. Ponto exato e contato ficam restritos ao motorista e aos passageiros aceitos. CNH e arquivos de verificação não integram o perfil público. Acesso administrativo deve ser limitado por função e necessidade de análise.
+Cláusula 7 – Compartilhamento e serviços externos
+Informações podem ser compartilhadas com os participantes autorizados de uma carona e, quando contratados e integrados, com prestadores necessários a autenticação, mapas, mensagens, hospedagem ou pagamentos. A identificação dos prestadores, os dados enviados e a eventual transferência internacional devem ser informados na versão operacional da política. Não há autorização para divulgação indiscriminada de dados.
+Cláusula 8 – Armazenamento e segurança
+A versão Android examinada armazena dados localmente com Room e SQLite e utiliza preferências para sessão e recuperação simulada. A versão integrada deverá proteger tráfego, credenciais, documentos e backups, com controles de acesso e registros proporcionais. A adoção de controles não permite afirmar segurança absoluta. A implementação atual precisa de revisão antes de uso com dados reais em operação compartilhada.
+Cláusula 9 – Prazo de conservação
+Os dados devem ser conservados pelo período necessário à finalidade informada, à prestação solicitada e às obrigações legais aplicáveis. O desligamento da conta deve resultar na eliminação ou anonimização do que não necessitar de retenção. A equipe deverá definir e informar prazos por categoria de dado; o histórico de caronas não justifica armazenamento ilimitado de dados pessoais.
+Cláusula 10 – Direitos e procedimento de atendimento
+O titular pode solicitar confirmação e acesso, correção, informações sobre compartilhamento e outros direitos aplicáveis, inclusive eliminação e revogação de consentimento nas hipóteses legais. O pedido pode ser enviado ao canal do projeto, com identificação da conta e descrição da solicitação. A equipe deve evitar pedir documentos além do necessário, registrar a demanda e responder nos prazos legais, explicando retenções ou impedimentos fundamentados.
+Cláusula 11 – Revisão de decisões e menores de idade
+O usuário pode pedir esclarecimento e revisão de decisão automatizada que afete seus interesses, quando aplicável. O tratamento de dados de crianças ou adolescentes exige avaliação do melhor interesse e das condições legais pertinentes. O vínculo universitário não autoriza presumir que todos os usuários sejam maiores de idade.
+Cláusula 12 – Incidentes e comunicações
+Suspeitas de acesso indevido, perda ou exposição de dados devem ser encaminhadas ao suporte. A equipe deve apurar, conter e registrar o incidente e avaliar as comunicações exigidas à autoridade e aos titulares, conforme a legislação e a regulamentação aplicáveis.
+Cláusula 13 – Alterações e ciência
+Mudanças relevantes de finalidade, prestadores, coleta ou condições de tratamento devem ser informadas de forma acessível. A aplicação deverá apresentar a versão da política e registrar a ciência. Permissões opcionais e consentimentos específicos deverão ser tratados separadamente.

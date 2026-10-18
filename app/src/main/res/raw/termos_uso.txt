@@ -1,0 +1,32 @@
+Termos de Uso da Plataforma Hitchhike
+
+Cláusula 1 – Objeto e responsáveis
+Estes termos descrevem as condições de uso propostas para o Hitchhike, projeto acadêmico desenvolvido por Guilherme dos Santos Medeiros, Isabella Dichirico e Pedro Henrique Macedo Cunha. A plataforma tem a finalidade de organizar caronas na comunidade acadêmica do Senac Santo Amaro. A identificação de uma futura pessoa jurídica operadora deverá ser informada antes de eventual operação comercial.
+Cláusula 2 – Acesso e cadastro
+O acesso exige e-mail institucional dos domínios autorizados, dados verdadeiros e concordância com a versão dos termos apresentada no cadastro. A confirmação do e-mail deve ocorrer pelo mecanismo disponibilizado na versão integrada. A simples presença de um domínio institucional não assegura identidade ou vínculo atual.
+Cláusula 3 – Responsabilidade pelas credenciais
+O usuário deve proteger sua senha, não compartilhar a conta e comunicar suspeita de acesso indevido ao suporte. A plataforma deve disponibilizar saída da conta e recuperação segura de credenciais, conforme os requisitos técnicos.
+Cláusula 4 – Condição do motorista e do veículo
+Oferecer carona depende do cadastro e da verificação da habilitação e dos dados do veículo. O motorista responde pela veracidade das informações, condições do veículo, disponibilidade informada e observância das normas de trânsito. A indicação de documento anexado não equivale à sua autenticação.
+Cláusula 5 – Oferta e participação
+A oferta informa origem por região, destino, saída, chegada prevista, vagas e valor. O pedido fica pendente até o aceite do motorista. O passageiro deve respeitar os horários e as condições aceitas e não solicitar viagens incompatíveis. A conta pode atuar como motorista ou passageiro, respeitadas as condições de cada papel.
+Cláusula 6 – Planos e valores
+O modelo prevê plano gratuito com duas participações semanais como passageiro e premium com cinco, por R$ 9,00 mensais. Ambos mantêm taxa administrativa de R$ 2,50 por participação aceita. Antes de solicitar, devem ser exibidos valor da participação, taxa e total. A assinatura não é ilimitada. A oferta de cobrança real depende de implementação e das condições de contratação apresentadas ao usuário.
+Cláusula 7 – Registro e pagamento
+O registro financeiro de uma participação não comprova que o valor foi recebido. A aplicação deverá identificar o meio e o estado do pagamento quando houver essa funcionalidade. O projeto não oferece carteira digital, crédito interno ou serviço bancário. Não se deve informar pagamento aprovado sem confirmação do meio efetivamente utilizado.
+Cláusula 8 – Cancelamentos e restituições
+O cancelamento regular de participação aceita deve observar antecedência mínima de 30 minutos da saída. O cancelamento da oferta pelo motorista deve informar todos os participantes. A composição financeira deve manter histórico de cancelamento, reversão ou restituição aplicável. Condições adicionais de reembolso e da assinatura devem ser informadas antes de contratar a cobrança. Risco à segurança deve ser comunicado ao suporte mesmo fora do prazo regular.
+Cláusula 9 – Condutas proibidas
+São vedados perfis falsos, documentos fraudulentos, uso indevido de dados de terceiros, assédio, discriminação, ameaça e outras condutas ilegais ou que comprometam a segurança. As interações devem respeitar os participantes e as finalidades acadêmicas do serviço.
+Cláusula 10 – Avaliações e análise administrativa
+Avaliações devem decorrer de participação elegível e respeitar o prazo de 48 horas após o término previsto. Não são admitidas avaliações de terceiros ou duplicadas. Suspensões devem apresentar motivo e canal de contestação, com revisão administrativa. A inexistência de notas não caracteriza reputação negativa.
+Cláusula 11 – Privacidade e localização
+O tratamento de dados é descrito na Política de Privacidade do Apêndice G. Ponto exato de encontro e dados de contato ficam restritos aos envolvidos com participação aceita. Documentos de habilitação não são divulgados no perfil público. A permissão de localização do aparelho deve ser solicitada apenas quando necessária à funcionalidade.
+Cláusula 12 – Papel da plataforma
+O Hitchhike organiza informações e interações entre motoristas e passageiros. A condução do veículo cabe ao motorista. Esse papel não elimina obrigações legais da equipe operadora nem autoriza prometer ausência de risco. O usuário deve comunicar inconsistências e situações de risco ao canal de suporte.
+Cláusula 13 – Correção e encerramento da conta
+O usuário pode solicitar correção de dados e encerramento da conta pelo canal de suporte. A equipe deve verificar a identidade de forma proporcional e informar o atendimento e eventuais retenções justificadas. O encerramento não implica eliminação automática de todo registro quando houver hipótese legal de conservação.
+Cláusula 14 – Validações e serviços externos
+Qualquer consulta a serviços externos, inclusive fontes oficiais, depende de integração efetivamente disponível, finalidade informada e acesso autorizado. O texto dos termos não significa que exista consulta automática a bases governamentais. Inconsistências devem ser tratadas por procedimento transparente de atualização ou análise.
+Cláusula 15 – Atualizações e contato
+Alterações relevantes destes termos devem ser comunicadas antes de produzir efeitos sobre o uso. A aplicação deve identificar a versão apresentada e o aceite correspondente. Dúvidas, reclamações e solicitações podem ser encaminhadas a hitchhike.suporte@gmail.com, canal definido para o projeto.

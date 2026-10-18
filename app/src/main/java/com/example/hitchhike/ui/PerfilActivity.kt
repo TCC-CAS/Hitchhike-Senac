@@ -15,6 +15,8 @@ import com.example.hitchhike.data.UsuarioEntity
 import com.example.hitchhike.data.UsuarioRepository
 import com.example.hitchhike.databinding.ActivityPerfilBinding
 import kotlinx.coroutines.launch
+import com.example.hitchhike.data.UsuarioFirestoreRepository
+import com.google.firebase.auth.FirebaseAuth
 
 class PerfilActivity : AppCompatActivity() {
     private lateinit var binding: ActivityPerfilBinding
@@ -22,6 +24,7 @@ class PerfilActivity : AppCompatActivity() {
     private lateinit var session: SessionManager
     private var usuario: UsuarioEntity? = null
     private var atualizandoSwitch = false
+    private val firestoreRepository = UsuarioFirestoreRepository()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,14 +41,73 @@ class PerfilActivity : AppCompatActivity() {
             return
         }
 
+
         binding.switchPapel.setOnCheckedChangeListener { _, checked ->
+
             if (atualizandoSwitch) return@setOnCheckedChangeListener
+
             val atual = usuario ?: return@setOnCheckedChangeListener
-            val novoPapel = if (checked) PapelUsuario.MOTORISTA else PapelUsuario.PASSAGEIRO
-            lifecycleScope.launch {
-                repository.alternarPapel(atual, novoPapel)
-                carregar()
+
+            val novoPapel = if (checked) {
+                PapelUsuario.MOTORISTA
+            } else {
+                PapelUsuario.PASSAGEIRO
             }
+
+            val uid = FirebaseAuth.getInstance().currentUser?.uid
+
+            if (uid == null) {
+                Toast.makeText(
+                    this,
+                    "Sessão Firebase inválida.",
+                    Toast.LENGTH_SHORT
+                ).show()
+                bind(atual)
+                return@setOnCheckedChangeListener
+            }
+
+            binding.switchPapel.isEnabled = false
+
+            firestoreRepository.atualizarPapel(
+                uid = uid,
+                novoPapel = novoPapel,
+
+                onSuccess = {
+                    lifecycleScope.launch {
+                        try {
+                            val usuarioAtualizado = repository.buscar(atual.id)
+
+                            if (usuarioAtualizado != null) {
+                                repository.alternarPapel(
+                                    usuarioAtualizado,
+                                    novoPapel
+                                )
+                            }
+
+                            carregar()
+                        } catch (e: Exception) {
+                            Toast.makeText(
+                                this@PerfilActivity,
+                                "Firebase atualizado, mas houve erro no Room.",
+                                Toast.LENGTH_LONG
+                            ).show()
+                        } finally {
+                            binding.switchPapel.isEnabled = true
+                        }
+                    }
+                },
+
+                onError = { erro ->
+                    Toast.makeText(
+                        this,
+                        "Erro ao alterar papel: $erro",
+                        Toast.LENGTH_LONG
+                    ).show()
+
+                    bind(atual)
+                    binding.switchPapel.isEnabled = true
+                }
+            )
         }
 
         binding.btnCompletarMotorista.setOnClickListener {

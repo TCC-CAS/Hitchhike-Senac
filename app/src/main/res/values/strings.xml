@@ -43,7 +43,7 @@
     <string name="action_sair">Sair da conta</string>
     <string name="action_completar_motorista">Cadastrar CNH e veículo</string>
     <string name="action_editar_veiculo">Atualizar dados do veículo</string>
-    <string name="banner_motorista_bloqueado">Oferecer carona fica disponível após o cadastro da CNH e dos dados do veículo (placa, modelo e cor).</string>
+    <string name="banner_motorista_bloqueado">Para oferecer caronas, cadastre seus dados de motorista e aguarde a aprovação.</string>
     <string name="status_pendente">Validação pendente</string>
     <string name="status_validado">Condutor validado</string>
     <string name="plano_gratuito">Gratuito · até 2 caronas por semana</string>
@@ -57,8 +57,8 @@
     <string name="hint_modelo">Modelo</string>
     <string name="hint_cor">Cor</string>
     <string name="action_anexar_cnh">Marcar CNH como anexada</string>
-    <string name="cnh_anexada">Documento da CNH registrado nesta conta</string>
-    <string name="action_salvar_condutor">Salvar e habilitar motorista</string>
+    <string name="cnh_anexada">Documento marcado como anexado (simulação).</string>
+    <string name="action_salvar_condutor">Salvar dados do motorista</string>
 
     <string name="erro_email_institucional">Use um e-mail @senac.br ou @sp.senac.br</string>
     <string name="erro_campos_obrigatorios">Preencha todos os campos obrigatórios</string>
@@ -75,8 +75,69 @@
     <string name="sucesso_cadastro">Cadastro realizado com sucesso</string>
     <string name="sucesso_codigo_enviado">Código enviado para o e-mail institucional (demonstração: %1$s)</string>
     <string name="sucesso_senha">Senha redefinida. Faça login novamente.</string>
-    <string name="sucesso_condutor">Dados do condutor salvos. Você já pode atuar como motorista.</string>
+    <string name="sucesso_condutor">Dados do motorista salvos. A aprovação ainda está pendente.</string>
     <string name="sucesso_plano">Plano Premium ativado nesta conta de demonstração.</string>
+
+    <string name="home_saudacao">Olá, %1$s</string>
+    <string name="home_buscar">Buscar carona</string>
+    <string name="home_buscar_desc">Encontre trajetos abertos para o campus.</string>
+    <string name="home_oferecer">Oferecer carona</string>
+    <string name="home_oferecer_desc">Publique origem, horário e vagas.</string>
+    <string name="home_minhas">Minhas caronas</string>
+    <string name="home_minhas_desc">Veja o que você publicou ou pediu.</string>
+    <string name="home_perfil">Meu perfil</string>
+    <string name="action_voltar">Voltar</string>
+
+    <string name="oferecer_title">Oferecer carona</string>
+    <string name="oferecer_subtitle">Informe o bairro de origem e o horário de saída.</string>
+    <string name="hint_origem">Origem (bairro ou estação)</string>
+    <string name="hint_destino">Destino</string>
+    <string name="destino_padrao">Senac Santo Amaro</string>
+    <string name="hint_vagas">Vagas (1 a 4)</string>
+    <string name="hint_valor">Valor de cortesia (R$)</string>
+    <string name="action_escolher_horario">Escolher data e hora</string>
+    <string name="horario_selecionado">Saída: %1$s</string>
+    <string name="action_publicar">Publicar carona</string>
+
+    <string name="buscar_title">Buscar carona</string>
+    <string name="action_buscar">Buscar</string>
+    <string name="buscar_vazio">Nenhuma carona aberta encontrada. Tente outro bairro ou publique uma.</string>
+    <string name="carona_resumo">%1$d vaga(s) · %2$s</string>
+
+    <string name="detalhe_title">Detalhes da carona</string>
+    <string name="detalhe_motorista">Motorista: %1$s</string>
+    <string name="detalhe_vagas">Vagas: %1$d de %2$d</string>
+    <string name="detalhe_valor">Valor: %1$s</string>
+    <string name="detalhe_pedidos">Pedidos de vaga</string>
+    <string name="action_solicitar">Pedir vaga</string>
+    <string name="action_cancelar_carona">Cancelar carona</string>
+    <string name="action_aceitar">Aceitar</string>
+    <string name="action_recusar">Recusar</string>
+
+    <string name="minhas_title">Minhas caronas</string>
+    <string name="minhas_oferecidas">Caronas que ofereci</string>
+    <string name="minhas_oferecidas_vazio">Você ainda não publicou caronas.</string>
+    <string name="minhas_solicitacoes">Pedidos que fiz</string>
+    <string name="minhas_solicitacoes_vazio">Você ainda não pediu vaga.</string>
+
+    <string name="erro_motorista">Motorista ainda não aprovado. Aguarde a validação do cadastro.</string>
+    <string name="erro_vagas">Informe de 1 a 4 vagas.</string>
+    <string name="erro_vaga">Não há vaga disponível.</string>
+    <string name="erro_autosolicitacao">Você não pode pedir vaga na própria carona.</string>
+    <string name="erro_ja_solicitou">Você já pediu esta carona.</string>
+    <string name="sucesso_publicar">Carona publicada.</string>
+    <string name="sucesso_solicitar">Pedido enviado. O motorista precisa aceitar.</string>
+    <string name="sucesso_aceitar">Pedido aceito. A vaga foi reservada.</string>
+    <string name="sucesso_cancelar">Carona cancelada.</string>
+
+    <string-array name="origens_campus">
+        <item>Santo Amaro</item>
+        <item>Estação Socorro</item>
+        <item>Interlagos</item>
+        <item>Capão Redondo</item>
+        <item>Jabaquara</item>
+        <item>Campo Grande</item>
+    </string-array>
 
     <string-array name="cursos_senac">
         <item>Sistemas de Informação</item>
