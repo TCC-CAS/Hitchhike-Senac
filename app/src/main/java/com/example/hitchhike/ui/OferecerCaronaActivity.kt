@@ -12,12 +12,14 @@ import android.location.LocationManager
 import android.os.Bundle
 import android.os.Looper
 import android.util.Log
+import android.view.LayoutInflater
 import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.widget.doAfterTextChanged
 import androidx.lifecycle.lifecycleScope
 import com.example.hitchhike.R
 import com.example.hitchhike.data.CaronaRepository
@@ -25,11 +27,16 @@ import com.example.hitchhike.data.SessionManager
 import com.example.hitchhike.data.UsuarioRepository
 import com.example.hitchhike.databinding.ActivityOferecerCaronaBinding
 import com.example.hitchhike.util.DateTimeFormat
+import com.google.android.material.button.MaterialButton
+import com.google.android.material.textfield.TextInputLayout
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.math.BigDecimal
+import java.math.RoundingMode
+import java.text.NumberFormat
 import java.util.Calendar
 import java.util.Locale
 import com.example.hitchhike.data.CaronaFirestore
@@ -100,6 +107,8 @@ class OferecerCaronaActivity : AppCompatActivity() {
         binding.etDestino.threshold = 1
 
         atualizarDataHora()
+        atualizarResumoValor()
+        binding.etValor.doAfterTextChanged { atualizarResumoValor() }
 
         configurarBotaoVoltar(binding.btnVoltar)
         binding.btnUsarLocalizacao.setOnClickListener { solicitarLocalizacao() }
@@ -110,45 +119,11 @@ class OferecerCaronaActivity : AppCompatActivity() {
                 Toast.makeText(this, "Limite de 3 paradas atingido", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-            // Cria a linha que conterá o TextInputLayout e o botão remover
-            val row = android.widget.LinearLayout(this).apply {
-                orientation = android.widget.LinearLayout.HORIZONTAL
-                layoutParams = android.widget.LinearLayout.LayoutParams(
-                    android.view.ViewGroup.LayoutParams.MATCH_PARENT,
-                    android.view.ViewGroup.LayoutParams.WRAP_CONTENT
-                )
+            val row = LayoutInflater.from(this)
+                .inflate(R.layout.item_parada_oferecer, binding.containerParadas, false)
+            row.findViewById<MaterialButton>(R.id.btnRemoverParada).setOnClickListener {
+                binding.containerParadas.removeView(row)
             }
-            val til = com.google.android.material.textfield.TextInputLayout(this).apply {
-                layoutParams = android.widget.LinearLayout.LayoutParams(
-                    0,
-                    android.view.ViewGroup.LayoutParams.WRAP_CONTENT,
-                    1f
-                )
-                hint = "Parada"
-                boxBackgroundMode = com.google.android.material.textfield.TextInputLayout.BOX_BACKGROUND_OUTLINE
-                setBoxCornerRadii(8f, 8f, 8f, 8f)
-            }
-            val edit = com.google.android.material.textfield.TextInputEditText(this).apply {
-                layoutParams = android.widget.LinearLayout.LayoutParams(
-                    android.view.ViewGroup.LayoutParams.MATCH_PARENT,
-                    android.view.ViewGroup.LayoutParams.WRAP_CONTENT
-                )
-                inputType = android.text.InputType.TYPE_CLASS_TEXT
-                maxLines = 1
-                maxEms = 150
-                minHeight = resources.getDimensionPixelSize(R.dimen.hh_button_min)
-            }
-            til.addView(edit)
-            val btnRemove = com.google.android.material.button.MaterialButton(this).apply {
-                text = "✕"
-                layoutParams = android.widget.LinearLayout.LayoutParams(
-                    android.view.ViewGroup.LayoutParams.WRAP_CONTENT,
-                    android.view.ViewGroup.LayoutParams.WRAP_CONTENT
-                )
-                setOnClickListener { binding.containerParadas.removeView(row) }
-            }
-            row.addView(til)
-            row.addView(btnRemove)
             binding.containerParadas.addView(row)
         }
 
@@ -543,6 +518,31 @@ class OferecerCaronaActivity : AppCompatActivity() {
     }
 
 
+    private fun atualizarResumoValor() {
+        val valorTexto = binding.etValor.text?.toString()
+            ?.replace(",", ".")
+            ?.trim()
+            .orEmpty()
+        val valorInformado = valorTexto.toDoubleOrNull()
+        val valorValido = if (valorInformado != null && valorInformado.isFinite() && valorInformado >= 0) {
+            valorInformado
+        } else {
+            0.0
+        }
+
+        val valorBase = BigDecimal.valueOf(valorValido)
+            .setScale(2, RoundingMode.HALF_UP)
+        val taxa = valorBase
+            .multiply(BigDecimal("0.25"))
+            .setScale(2, RoundingMode.HALF_UP)
+        val total = valorBase.add(taxa)
+
+        val formato = NumberFormat.getCurrencyInstance(Locale("pt", "BR"))
+        binding.tvResumoValorBase.text = formato.format(valorBase)
+        binding.tvResumoTaxa.text = formato.format(taxa)
+        binding.tvResumoTotal.text = formato.format(total)
+    }
+
     private fun publicar() {
         val origem = binding.etOrigem.text?.toString().orEmpty().trim()
         val destino = binding.etDestino.text?.toString().orEmpty().trim()
@@ -611,9 +611,9 @@ class OferecerCaronaActivity : AppCompatActivity() {
             // Coleta das paradas informadas
             val paradasList = mutableListOf<String>()
             for (i in 0 until binding.containerParadas.childCount) {
-                val row = binding.containerParadas.getChildAt(i) as android.widget.LinearLayout
-                val til = row.getChildAt(0) as com.google.android.material.textfield.TextInputLayout
-                val texto = til.editText?.text?.toString()?.trim()
+                val row = binding.containerParadas.getChildAt(i)
+                val til = row.findViewById<TextInputLayout>(R.id.tilParada)
+                val texto = til?.editText?.text?.toString()?.trim()
                 if (!texto.isNullOrEmpty()) {
                     paradasList.add(texto)
                 }

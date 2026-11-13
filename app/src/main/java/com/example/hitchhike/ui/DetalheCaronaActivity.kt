@@ -82,7 +82,9 @@ class DetalheCaronaActivity : AppCompatActivity() {
             }
             val encerrada = CaronaStatusExibicao.calcular(carona) == StatusCarona.ENCERRADA.name
 
-            binding.tvTrajeto.text = "${carona.origem} → ${carona.destino}"
+            binding.tvOrigem.text = carona.origem
+            binding.tvDestino.text = carona.destino
+            exibirParadas(null)
             binding.tvHorario.text = DateTimeFormat.dataHora(carona.dataHoraSaida)
             binding.tvMotorista.text = PrivacidadeNome.texto(
                 PrivacidadeNome.decidir(
@@ -93,7 +95,12 @@ class DetalheCaronaActivity : AppCompatActivity() {
                     nomeCompleto = motorista?.nome
                 )
             )
-            binding.tvVagas.text = getString(R.string.detalhe_vagas, carona.vagasDisponiveis, carona.vagasTotais)
+            binding.tvVagas.text = getString(
+                R.string.detalhe_vagas_compacto,
+                carona.vagasDisponiveis,
+                carona.vagasTotais
+            )
+            exibirResumoValores(carona.valor)
 
             binding.tvStatus.text = CaronaStatusExibicao.calcular(carona)
 
@@ -166,8 +173,8 @@ class DetalheCaronaActivity : AppCompatActivity() {
         caronaFirestoreRepository.buscarPorId(
             caronaId = id,
             onSuccess = { carona ->
-                binding.tvTrajeto.text =
-                    "${carona.origem} → ${carona.destino}"
+                binding.tvOrigem.text = carona.origem
+                binding.tvDestino.text = carona.destino
 
                 binding.tvHorario.text =
                     DateTimeFormat.dataHora(
@@ -185,15 +192,12 @@ class DetalheCaronaActivity : AppCompatActivity() {
                 )
 
                 binding.tvVagas.text = getString(
-                    R.string.detalhe_vagas,
+                    R.string.detalhe_vagas_compacto,
                     carona.vagasDisponiveis,
                     carona.vagasTotais
                 )
 
-                binding.tvValor.text = getString(
-                    R.string.detalhe_valor,
-                    DateTimeFormat.valor(carona.valor)
-                )
+                exibirResumoValores(carona.valor)
 
                 caronaOnline = carona
                 exibirParadas(carona.paradas)
@@ -236,13 +240,38 @@ class DetalheCaronaActivity : AppCompatActivity() {
             return
         }
         binding.containerParadasDetalhe.visibility = View.VISIBLE
+        val inflater = LayoutInflater.from(this)
         paradas.forEachIndexed { index, parada ->
-            val tv = TextView(this).apply {
-                text = "Parada ${index + 1}: $parada"
-                setPadding(0, 8, 0, 8)
-            }
-            binding.containerParadasDetalhe.addView(tv)
+            val item = inflater.inflate(
+                R.layout.item_parada_detalhe,
+                binding.containerParadasDetalhe,
+                false
+            )
+            item.findViewById<TextView>(R.id.tvParadaOrdem).text =
+                getString(R.string.detalhe_parada_label, index + 1)
+            item.findViewById<TextView>(R.id.tvParadaNome).text = parada
+            binding.containerParadasDetalhe.addView(item)
         }
+    }
+
+    private fun calcularValores(valorCarona: Double): Triple<BigDecimal, BigDecimal, BigDecimal> {
+        val valorBase = BigDecimal.valueOf(valorCarona)
+            .setScale(2, RoundingMode.HALF_UP)
+
+        val taxa = valorBase
+            .multiply(BigDecimal("0.25"))
+            .setScale(2, RoundingMode.HALF_UP)
+
+        val total = valorBase.add(taxa)
+        return Triple(valorBase, taxa, total)
+    }
+
+    private fun exibirResumoValores(valorCarona: Double) {
+        val (valorBase, taxa, total) = calcularValores(valorCarona)
+        val formato = NumberFormat.getCurrencyInstance(Locale("pt", "BR"))
+        binding.tvValorBase.text = formato.format(valorBase)
+        binding.tvValorTaxa.text = formato.format(taxa)
+        binding.tvValorTotal.text = formato.format(total)
     }
 
     private fun atualizarAcoesPassageiro(
@@ -408,14 +437,7 @@ class DetalheCaronaActivity : AppCompatActivity() {
 
 
     private fun mostrarPagamentoSimulado(valorCarona: Double) {
-        val valorBase = BigDecimal.valueOf(valorCarona)
-            .setScale(2, RoundingMode.HALF_UP)
-
-        val taxa = valorBase
-            .multiply(BigDecimal("0.25"))
-            .setScale(2, RoundingMode.HALF_UP)
-
-        val total = valorBase.add(taxa)
+        val (valorBase, taxa, total) = calcularValores(valorCarona)
 
         val formato = NumberFormat.getCurrencyInstance(
             Locale("pt", "BR")

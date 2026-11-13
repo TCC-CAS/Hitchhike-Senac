@@ -91,6 +91,15 @@
 
     <string name="oferecer_title">Oferecer carona</string>
     <string name="oferecer_subtitle">Informe o bairro de origem e o horário de saída.</string>
+    <string name="oferecer_secao_trajeto">Seu trajeto</string>
+    <string name="oferecer_secao_detalhes">Detalhes da viagem</string>
+    <string name="oferecer_hint_parada">Parada intermediária</string>
+    <string name="oferecer_add_parada">+ Adicionar parada</string>
+    <string name="cd_remover_parada">Remover parada</string>
+    <string name="oferecer_hint_valor_base">Valor-base da carona (R$)</string>
+    <string name="oferecer_resumo_base_label">Valor-base (você recebe)</string>
+    <string name="oferecer_resumo_total_label">Total estimado para o passageiro</string>
+    <string name="oferecer_resumo_observacao">Você recebe integralmente o valor-base definido. Valores exibidos são simulados para fins acadêmicos.</string>
     <string name="hint_origem">Origem (bairro ou estação)</string>
     <string name="action_usar_localizacao">Usar minha localização</string>
     <string name="localizacao_obtendo">Obtendo sua localização atual…</string>
@@ -112,6 +121,18 @@
     <string name="carona_resumo">%1$d vaga(s) · %2$s</string>
 
     <string name="detalhe_title">Detalhes da carona</string>
+    <string name="detalhe_trajeto_titulo">Trajeto</string>
+    <string name="detalhe_origem_label">Origem</string>
+    <string name="detalhe_destino_label">Destino</string>
+    <string name="detalhe_parada_label">Parada %1$d</string>
+    <string name="detalhe_horario_label">Data e horário</string>
+    <string name="detalhe_vagas_label">Vagas disponíveis</string>
+    <string name="detalhe_vagas_compacto">%1$d de %2$d</string>
+    <string name="detalhe_motorista_label">Motorista</string>
+    <string name="detalhe_valores_titulo">Resumo do valor</string>
+    <string name="detalhe_valor_base_label">Valor-base (motorista)</string>
+    <string name="detalhe_taxa_label">Taxa Hitchhike (25%)</string>
+    <string name="detalhe_valor_total_label">Total para o passageiro</string>
     <string name="detalhe_motorista">Motorista: %1$s</string>
     <string name="detalhe_vagas">Vagas: %1$d de %2$d</string>
     <string name="detalhe_valor">Valor: %1$s</string>
