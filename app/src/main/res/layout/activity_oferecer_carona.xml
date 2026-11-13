@@ -63,15 +63,25 @@
                         android:minHeight="@dimen/hh_button_min" />
                 </com.google.android.material.textfield.TextInputLayout>
 
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnUsarLocalizacao"
+                    style="@style/Widget.Hitchhike.Button.Text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="@string/action_usar_localizacao"
+                    app:icon="@drawable/ic_my_location"
+                    app:iconTint="@color/hh_green" />
+
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/tilDestino"
                     style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
+                    android:layout_marginTop="8dp"
                     android:hint="@string/hint_destino">
 
-                    <com.google.android.material.textfield.TextInputEditText
+                    <AutoCompleteTextView
                         android:id="@+id/etDestino"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"

@@ -92,6 +92,12 @@
     <string name="oferecer_title">Oferecer carona</string>
     <string name="oferecer_subtitle">Informe o bairro de origem e o horário de saída.</string>
     <string name="hint_origem">Origem (bairro ou estação)</string>
+    <string name="action_usar_localizacao">Usar minha localização</string>
+    <string name="localizacao_obtendo">Obtendo sua localização atual…</string>
+    <string name="localizacao_sucesso">Origem preenchida com sua localização atual.</string>
+    <string name="localizacao_erro_permissao">Permissão de localização negada. Digite a origem manualmente.</string>
+    <string name="localizacao_erro_gps_desativado">GPS desativado. Ative a localização ou digite a origem manualmente.</string>
+    <string name="localizacao_erro_endereco">Não foi possível identificar o endereço. Digite a origem manualmente.</string>
     <string name="hint_destino">Destino</string>
     <string name="destino_padrao">Senac Santo Amaro</string>
     <string name="hint_vagas">Vagas (1 a 4)</string>
