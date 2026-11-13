@@ -105,6 +105,54 @@ class OferecerCaronaActivity : AppCompatActivity() {
         binding.btnUsarLocalizacao.setOnClickListener { solicitarLocalizacao() }
         binding.btnDataHora.setOnClickListener { escolherDataHora() }
         binding.btnPublicar.setOnClickListener { publicar() }
+        binding.btnAddParada.setOnClickListener {
+            if (binding.containerParadas.childCount >= 3) {
+                Toast.makeText(this, "Limite de 3 paradas atingido", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            // Cria a linha que conterá o TextInputLayout e o botão remover
+            val row = android.widget.LinearLayout(this).apply {
+                orientation = android.widget.LinearLayout.HORIZONTAL
+                layoutParams = android.widget.LinearLayout.LayoutParams(
+                    android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                    android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+                )
+            }
+            val til = com.google.android.material.textfield.TextInputLayout(this).apply {
+                layoutParams = android.widget.LinearLayout.LayoutParams(
+                    0,
+                    android.view.ViewGroup.LayoutParams.WRAP_CONTENT,
+                    1f
+                )
+                hint = "Parada"
+                boxBackgroundMode = com.google.android.material.textfield.TextInputLayout.BOX_BACKGROUND_OUTLINE
+                setBoxCornerRadii(8f, 8f, 8f, 8f)
+            }
+            val edit = com.google.android.material.textfield.TextInputEditText(this).apply {
+                layoutParams = android.widget.LinearLayout.LayoutParams(
+                    android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                    android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+                )
+                inputType = android.text.InputType.TYPE_CLASS_TEXT
+                maxLines = 1
+                maxEms = 150
+                minHeight = resources.getDimensionPixelSize(R.dimen.hh_button_min)
+            }
+            til.addView(edit)
+            val btnRemove = com.google.android.material.button.MaterialButton(this).apply {
+                text = "✕"
+                layoutParams = android.widget.LinearLayout.LayoutParams(
+                    android.view.ViewGroup.LayoutParams.WRAP_CONTENT,
+                    android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+                )
+                setOnClickListener { binding.containerParadas.removeView(row) }
+            }
+            row.addView(til)
+            row.addView(btnRemove)
+            binding.containerParadas.addView(row)
+        }
+
+
     }
 
     override fun onDestroy() {
@@ -560,6 +608,17 @@ class OferecerCaronaActivity : AppCompatActivity() {
 
             binding.btnPublicar.isEnabled = false
 
+            // Coleta das paradas informadas
+            val paradasList = mutableListOf<String>()
+            for (i in 0 until binding.containerParadas.childCount) {
+                val row = binding.containerParadas.getChildAt(i) as android.widget.LinearLayout
+                val til = row.getChildAt(0) as com.google.android.material.textfield.TextInputLayout
+                val texto = til.editText?.text?.toString()?.trim()
+                if (!texto.isNullOrEmpty()) {
+                    paradasList.add(texto)
+                }
+            }
+
             val carona = CaronaFirestore(
                 origem = origem,
                 destino = destino,
@@ -568,8 +627,10 @@ class OferecerCaronaActivity : AppCompatActivity() {
                 ),
                 vagasTotais = vagas,
                 vagasDisponiveis = vagas,
-                valor = valor
+                valor = valor,
+                paradas = if (paradasList.isEmpty()) null else paradasList
             )
+
 
             caronaFirestoreRepository.publicar(
                 carona = carona,

@@ -11,5 +11,6 @@ data class CaronaFirestore(
     val vagasTotais: Int = 0,
     val vagasDisponiveis: Int = 0,
     val valor: Double = 0.0,
-    val status: String = "ABERTA"
+    val status: String = "ABERTA",
+    val paradas: List<String>? = null
 )

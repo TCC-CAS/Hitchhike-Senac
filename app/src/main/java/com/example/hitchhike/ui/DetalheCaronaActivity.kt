@@ -94,7 +94,7 @@ class DetalheCaronaActivity : AppCompatActivity() {
                 )
             )
             binding.tvVagas.text = getString(R.string.detalhe_vagas, carona.vagasDisponiveis, carona.vagasTotais)
-            binding.tvValor.text = getString(R.string.detalhe_valor, DateTimeFormat.valor(carona.valor))
+
             binding.tvStatus.text = CaronaStatusExibicao.calcular(carona)
 
             val disponivel = CaronaStatusExibicao.disponivelParaNovaSolicitacao(
@@ -196,6 +196,7 @@ class DetalheCaronaActivity : AppCompatActivity() {
                 )
 
                 caronaOnline = carona
+                exibirParadas(carona.paradas)
                 binding.tvStatus.text = CaronaStatusExibicao.calcular(carona)
 
                 val usuarioUid = FirebaseAuth.getInstance().currentUser?.uid
@@ -226,6 +227,22 @@ class DetalheCaronaActivity : AppCompatActivity() {
                 ).show()
             }
         )
+    }
+
+    private fun exibirParadas(paradas: List<String>?) {
+        binding.containerParadasDetalhe.removeAllViews()
+        if (paradas.isNullOrEmpty()) {
+            binding.containerParadasDetalhe.visibility = View.GONE
+            return
+        }
+        binding.containerParadasDetalhe.visibility = View.VISIBLE
+        paradas.forEachIndexed { index, parada ->
+            val tv = TextView(this).apply {
+                text = "Parada ${index + 1}: $parada"
+                setPadding(0, 8, 0, 8)
+            }
+            binding.containerParadasDetalhe.addView(tv)
+        }
     }
 
     private fun atualizarAcoesPassageiro(

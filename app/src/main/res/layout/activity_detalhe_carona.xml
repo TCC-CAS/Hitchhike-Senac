@@ -101,6 +101,16 @@
                     android:text="@string/action_solicitar"
                     android:visibility="gone" />
 
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnCancelar"
+                    style="@style/Widget.Hitchhike.Button.Text"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/action_cancelar_carona"
+                    android:textColor="@color/hh_error"
+                    android:visibility="gone" />
+
                 <TextView
                     android:id="@+id/tvAvaliacaoEnviada"
                     android:layout_width="match_parent"
@@ -119,15 +129,15 @@
                     android:text="@string/action_avaliar"
                     android:visibility="gone" />
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnCancelar"
-                    style="@style/Widget.Material3.Button.TextButton"
+                
+                <LinearLayout
+                    android:id="@+id/containerParadasDetalhe"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:text="@string/action_cancelar_carona"
-                    android:textColor="@color/hh_error"
-                    android:visibility="gone" />
+                    android:orientation="vertical"
+                    android:visibility="gone"
+                    android:layout_marginTop="8dp" />
+
 
                 <TextView
                     android:id="@+id/tvPedidosTitulo"

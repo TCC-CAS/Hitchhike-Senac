@@ -73,6 +73,27 @@
                     app:icon="@drawable/ic_my_location"
                     app:iconTint="@color/hh_green" />
 
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="Paradas intermediárias (opcional)"
+                    android:textColor="@color/hh_text_secondary" />
+
+                <LinearLayout
+                    android:id="@+id/containerParadas"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginTop="4dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnAddParada"
+                    style="@style/Widget.Hitchhike.Button.Text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="+ Adicionar parada" />
+
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/tilDestino"
                     style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
