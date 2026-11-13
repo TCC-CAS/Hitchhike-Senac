@@ -11,6 +11,7 @@ class InstitutionalEmailValidatorTest {
         assertTrue(InstitutionalEmailValidator.isValid("isabella@senac.br"))
         assertTrue(InstitutionalEmailValidator.isValid("aluno@sp.senac.br"))
         assertTrue(InstitutionalEmailValidator.isValid("  Docente@Senac.BR  "))
+        assertTrue(InstitutionalEmailValidator.isValid("aluno@senacsp.edu.br"))
     }
 
     @Test

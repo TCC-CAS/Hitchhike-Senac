@@ -1,255 +1,236 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/rootPerfil"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/hh_background"
-    android:fillViewport="true">
+    android:background="@color/hh_background">
 
-    <LinearLayout
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="20dp">
+        android:layout_height="match_parent"
+        android:clipToPadding="false"
+        android:fillViewport="true">
 
-        <TextView
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/perfil_title"
-            android:textAppearance="@style/TextAppearance.Hitchhike.Title" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:background="@drawable/bg_card"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:padding="16dp">
-
-            <ImageView
-                android:id="@+id/imgAvatar"
-                android:layout_width="64dp"
-                android:layout_height="64dp"
-                android:background="@drawable/bg_avatar"
-                android:contentDescription="@string/perfil_title"
-                android:padding="16dp"
-                android:src="@drawable/ic_person" />
+            android:layout_height="wrap_content">
 
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="12dp"
-                android:layout_weight="1"
-                android:orientation="vertical">
+                android:orientation="vertical"
+                android:padding="@dimen/hh_screen_padding"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintWidth_max="@dimen/hh_content_max">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnVoltar"
+                    style="@style/Widget.Hitchhike.Button.Back"
+                    android:layout_width="@dimen/hh_touch_min"
+                    android:layout_height="@dimen/hh_touch_min"
+                    android:layout_marginBottom="@dimen/hh_space_sm" />
 
                 <TextView
-                    android:id="@+id/tvNome"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:textColor="@color/hh_text"
-                    android:textSize="18sp"
-                    android:textStyle="bold" />
+                    android:text="@string/perfil_title"
+                    android:textAppearance="@style/TextAppearance.Hitchhike.Title" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:background="@drawable/bg_card_static"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:padding="@dimen/hh_card_padding">
+
+                    <ImageView
+                        android:id="@+id/imgAvatar"
+                        android:layout_width="64dp"
+                        android:layout_height="64dp"
+                        android:background="@drawable/bg_avatar"
+                        android:contentDescription="@string/perfil_title"
+                        android:padding="16dp"
+                        android:src="@drawable/ic_person" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="12dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/tvNome"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:textAppearance="@style/TextAppearance.Hitchhike.Section" />
+
+                        <TextView
+                            android:id="@+id/tvCurso"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:textColor="@color/hh_text_secondary" />
+
+                        <TextView
+                            android:id="@+id/tvEmail"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:textColor="@color/hh_text_secondary"
+                            android:textSize="13sp" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipPapel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:clickable="false"
+                    android:focusable="false"
+                    app:chipBackgroundColor="@color/hh_mint"
+                    app:chipStrokeWidth="0dp" />
 
                 <TextView
-                    android:id="@+id/tvCurso"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
-                    android:textColor="@color/hh_text_secondary" />
+                    android:layout_marginTop="20dp"
+                    android:text="@string/perfil_alternar"
+                    android:textAppearance="@style/TextAppearance.Hitchhike.Section" />
 
-                <TextView
-                    android:id="@+id/tvEmail"
+                <com.google.android.material.materialswitch.MaterialSwitch
+                    android:id="@+id/switchPapel"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:textColor="@color/hh_text_secondary"
-                    android:textSize="13sp" />
+                    android:layout_marginTop="4dp"
+                    android:minHeight="@dimen/hh_touch_min"
+                    android:text="@string/papel_motorista" />
+
+                <LinearLayout
+                    android:id="@+id/bannerMotorista"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:background="@drawable/bg_banner"
+                    android:orientation="vertical"
+                    android:padding="16dp"
+                    android:visibility="gone">
+
+                    <TextView
+                        android:id="@+id/tvBannerMotorista"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/banner_motorista_bloqueado"
+                        android:textColor="@color/hh_warning" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnCompletarMotorista"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="@string/action_completar_motorista" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/cardDadosPessoais"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:background="@drawable/bg_card_static"
+                    android:orientation="vertical"
+                    android:padding="@dimen/hh_card_padding">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/perfil_dados_pessoais"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tvInstituicao"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:textColor="@color/hh_text_secondary" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/cardReputacao"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:background="@drawable/bg_card_static"
+                    android:orientation="vertical"
+                    android:padding="@dimen/hh_card_padding">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/perfil_reputacao"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tvReputacao"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:textColor="@color/hh_text_secondary" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/cardMotorista"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:background="@drawable/bg_card_static"
+                    android:orientation="vertical"
+                    android:padding="@dimen/hh_card_padding"
+                    android:visibility="gone">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/perfil_condutor"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tvStatusCondutor"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:textColor="@color/hh_green"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tvDadosVeiculo"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:textColor="@color/hh_text_secondary" />
+
+                    <TextView
+                        android:id="@+id/tvEstatisticasMotorista"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:textColor="@color/hh_text_secondary" />
+                </LinearLayout>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnSair"
+                    style="@style/Widget.Material3.Button.TextButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="24dp"
+                    android:minHeight="@dimen/hh_touch_min"
+                    android:text="@string/action_sair"
+                    android:textColor="@color/hh_error" />
             </LinearLayout>
-        </LinearLayout>
-
-        <com.google.android.material.chip.Chip
-            android:id="@+id/chipPapel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:clickable="false"
-            app:chipBackgroundColor="@color/hh_mint"
-            app:chipStrokeWidth="0dp" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:text="@string/perfil_alternar"
-            android:textColor="@color/hh_text"
-            android:textStyle="bold" />
-
-        <com.google.android.material.materialswitch.MaterialSwitch
-            android:id="@+id/switchPapel"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:minHeight="48dp"
-            android:text="@string/papel_motorista" />
-
-        <LinearLayout
-            android:id="@+id/bannerMotorista"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:background="@drawable/bg_banner"
-            android:orientation="vertical"
-            android:padding="16dp"
-            android:visibility="gone">
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/banner_motorista_bloqueado"
-                android:textColor="@color/hh_warning" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnCompletarMotorista"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="@string/action_completar_motorista" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/cardDadosPessoais"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:background="@drawable/bg_card"
-            android:orientation="vertical"
-            android:padding="16dp">
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/perfil_dados_pessoais"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/tvInstituicao"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:textColor="@color/hh_text_secondary" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/cardReputacao"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:background="@drawable/bg_card"
-            android:orientation="vertical"
-            android:padding="16dp">
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/perfil_reputacao"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/tvReputacao"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:textColor="@color/hh_text_secondary" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/cardPlano"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:background="@drawable/bg_card"
-            android:orientation="vertical"
-            android:padding="16dp">
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/perfil_plano"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/tvPlano"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:textColor="@color/hh_text_secondary" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnPlanoPremium"
-                style="@style/Widget.Hitchhike.Button.Outlined"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="@string/action_plano_premium"
-                android:textColor="@color/hh_green" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/cardMotorista"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:background="@drawable/bg_card"
-            android:orientation="vertical"
-            android:padding="16dp"
-            android:visibility="gone">
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/perfil_condutor"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/tvStatusCondutor"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:textColor="@color/hh_green"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/tvDadosVeiculo"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:textColor="@color/hh_text_secondary" />
-
-            <TextView
-                android:id="@+id/tvEstatisticasMotorista"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:textColor="@color/hh_text_secondary" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnEditarVeiculo"
-                style="@style/Widget.Hitchhike.Button.Outlined"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="@string/action_editar_veiculo"
-                android:textColor="@color/hh_green" />
-        </LinearLayout>
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnSair"
-            style="@style/Widget.Material3.Button.TextButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:text="@string/action_sair"
-            android:textColor="@color/hh_error" />
-    </LinearLayout>
-</ScrollView>
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </ScrollView>
+</FrameLayout>

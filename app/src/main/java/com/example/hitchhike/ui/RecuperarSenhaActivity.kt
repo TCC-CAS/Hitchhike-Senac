@@ -25,6 +25,7 @@ class RecuperarSenhaActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         binding.rootRecuperar.applySystemInsets()
+        configurarBotaoVoltar(binding.btnVoltar)
 
         // Não usamos mais o código local de recuperação
         binding.grupoRedefinir.visibility = android.view.View.GONE

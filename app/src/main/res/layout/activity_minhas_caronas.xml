@@ -1,75 +1,236 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/rootMinhas"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/hh_background"
-    android:fillViewport="true">
+    android:background="@color/hh_background">
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="24dp">
+        android:layout_height="match_parent"
+        android:orientation="vertical">
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnVoltar"
-            style="@style/Widget.Material3.Button.TextButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/action_voltar"
-            android:textColor="@color/hh_green" />
-
-        <TextView
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/minhas_title"
-            android:textAppearance="@style/TextAppearance.Hitchhike.Title" />
+            android:layout_height="wrap_content">
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:text="@string/minhas_oferecidas"
-            android:textStyle="bold" />
+            <LinearLayout
+                android:id="@+id/cabecalhoMinhas"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingStart="@dimen/hh_screen_padding"
+                android:paddingTop="@dimen/hh_screen_padding"
+                android:paddingEnd="@dimen/hh_screen_padding"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintWidth_max="@dimen/hh_content_max">
 
-        <LinearLayout
-            android:id="@+id/listaOferecidas"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:orientation="vertical" />
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnVoltar"
+                    style="@style/Widget.Hitchhike.Button.Back"
+                    android:layout_width="@dimen/hh_touch_min"
+                    android:layout_height="@dimen/hh_touch_min"
+                    android:layout_marginBottom="@dimen/hh_space_sm" />
 
-        <TextView
-            android:id="@+id/tvVazioOferecidas"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="@string/minhas_oferecidas_vazio"
-            android:textColor="@color/hh_text_secondary"
-            android:visibility="gone" />
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/minhas_title"
+                    android:textAppearance="@style/TextAppearance.Hitchhike.Title" />
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:text="@string/minhas_solicitacoes"
-            android:textStyle="bold" />
+                <com.google.android.material.tabs.TabLayout
+                    android:id="@+id/tabsMinhas"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/hh_space_md"
+                    android:background="@color/hh_background"
+                    android:contentDescription="@string/cd_abas_minhas"
+                    app:tabGravity="fill"
+                    app:tabIndicatorColor="@color/hh_green"
+                    app:tabMode="fixed"
+                    app:tabRippleColor="@color/hh_mint"
+                    app:tabSelectedTextColor="@color/hh_green"
+                    app:tabTextColor="@color/hh_text_secondary">
 
-        <LinearLayout
-            android:id="@+id/listaSolicitacoes"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:orientation="vertical" />
+                    <com.google.android.material.tabs.TabItem
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/minhas_tab_proximas" />
 
-        <TextView
-            android:id="@+id/tvVazioSolicitacoes"
+                    <com.google.android.material.tabs.TabItem
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/minhas_tab_historico" />
+                </com.google.android.material.tabs.TabLayout>
+            </LinearLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <ScrollView
+            android:id="@+id/scrollProximas"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="@string/minhas_solicitacoes_vazio"
-            android:textColor="@color/hh_text_secondary"
-            android:visibility="gone" />
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:clipToPadding="false"
+            android:fillViewport="true">
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <LinearLayout
+                    android:id="@+id/conteudoProximas"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingStart="@dimen/hh_screen_padding"
+                    android:paddingTop="@dimen/hh_space_md"
+                    android:paddingEnd="@dimen/hh_screen_padding"
+                    android:paddingBottom="@dimen/hh_screen_padding"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintWidth_max="@dimen/hh_content_max">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/minhas_oferecidas"
+                        android:textAppearance="@style/TextAppearance.Hitchhike.Section" />
+
+                    <LinearLayout
+                        android:id="@+id/listaOferecidasProximas"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:orientation="vertical" />
+
+                    <TextView
+                        android:id="@+id/tvVazioOferecidasProximas"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:background="@drawable/bg_card_static"
+                        android:padding="@dimen/hh_card_padding"
+                        android:text="@string/minhas_oferecidas_proximas_vazio"
+                        android:textColor="@color/hh_text_secondary"
+                        android:visibility="gone" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="24dp"
+                        android:text="@string/minhas_solicitacoes"
+                        android:textAppearance="@style/TextAppearance.Hitchhike.Section" />
+
+                    <LinearLayout
+                        android:id="@+id/listaPedidosProximas"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:orientation="vertical" />
+
+                    <TextView
+                        android:id="@+id/tvVazioPedidosProximas"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:background="@drawable/bg_card_static"
+                        android:padding="@dimen/hh_card_padding"
+                        android:text="@string/minhas_pedidos_proximas_vazio"
+                        android:textColor="@color/hh_text_secondary"
+                        android:visibility="gone" />
+                </LinearLayout>
+            </androidx.constraintlayout.widget.ConstraintLayout>
+        </ScrollView>
+
+        <ScrollView
+            android:id="@+id/scrollHistorico"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:clipToPadding="false"
+            android:fillViewport="true"
+            android:visibility="gone">
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <LinearLayout
+                    android:id="@+id/conteudoHistorico"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingStart="@dimen/hh_screen_padding"
+                    android:paddingTop="@dimen/hh_space_md"
+                    android:paddingEnd="@dimen/hh_screen_padding"
+                    android:paddingBottom="@dimen/hh_screen_padding"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintWidth_max="@dimen/hh_content_max">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/minhas_oferecidas"
+                        android:textAppearance="@style/TextAppearance.Hitchhike.Section" />
+
+                    <LinearLayout
+                        android:id="@+id/listaOferecidasHistorico"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:orientation="vertical" />
+
+                    <TextView
+                        android:id="@+id/tvVazioOferecidasHistorico"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:background="@drawable/bg_card_static"
+                        android:padding="@dimen/hh_card_padding"
+                        android:text="@string/minhas_oferecidas_historico_vazio"
+                        android:textColor="@color/hh_text_secondary"
+                        android:visibility="gone" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="24dp"
+                        android:text="@string/minhas_solicitacoes"
+                        android:textAppearance="@style/TextAppearance.Hitchhike.Section" />
+
+                    <LinearLayout
+                        android:id="@+id/listaPedidosHistorico"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:orientation="vertical" />
+
+                    <TextView
+                        android:id="@+id/tvVazioPedidosHistorico"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:background="@drawable/bg_card_static"
+                        android:padding="@dimen/hh_card_padding"
+                        android:text="@string/minhas_pedidos_historico_vazio"
+                        android:textColor="@color/hh_text_secondary"
+                        android:visibility="gone" />
+                </LinearLayout>
+            </androidx.constraintlayout.widget.ConstraintLayout>
+        </ScrollView>
     </LinearLayout>
-</ScrollView>
+
+    <ProgressBar
+        android:id="@+id/progressMinhas"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:contentDescription="@string/estado_carregando"
+        android:visibility="gone" />
+</FrameLayout>

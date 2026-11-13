@@ -18,6 +18,7 @@ import kotlinx.coroutines.launch
 import java.util.Calendar
 import com.example.hitchhike.data.CaronaFirestore
 import com.example.hitchhike.data.CaronaFirestoreRepository
+import com.example.hitchhike.data.NomeAbreviadoFirestoreRepository
 import com.google.firebase.Timestamp
 
 class OferecerCaronaActivity : AppCompatActivity() {
@@ -27,6 +28,7 @@ class OferecerCaronaActivity : AppCompatActivity() {
     private lateinit var caronaRepository: CaronaRepository
 
     private val caronaFirestoreRepository = CaronaFirestoreRepository()
+    private val nomesAbreviados = NomeAbreviadoFirestoreRepository()
 
     private val calendario = Calendar.getInstance().apply {
         add(Calendar.HOUR_OF_DAY, 1)
@@ -51,7 +53,7 @@ class OferecerCaronaActivity : AppCompatActivity() {
         binding.etOrigem.threshold = 1
         atualizarDataHora()
 
-        binding.btnVoltar.setOnClickListener { finish() }
+        configurarBotaoVoltar(binding.btnVoltar)
         binding.btnDataHora.setOnClickListener { escolherDataHora() }
         binding.btnPublicar.setOnClickListener { publicar() }
     }
@@ -168,7 +170,8 @@ class OferecerCaronaActivity : AppCompatActivity() {
             caronaFirestoreRepository.publicar(
                 carona = carona,
 
-                onSuccess = { _ ->
+                onSuccess = { caronaId ->
+                    nomesAbreviados.garantirProprio(caronaId)
                     lifecycleScope.launch {
                         try {
                             val resultado = caronaRepository.publicar(

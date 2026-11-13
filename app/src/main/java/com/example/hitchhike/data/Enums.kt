@@ -13,6 +13,7 @@ enum class PlanoAssinatura {
 enum class StatusCarona {
     ABERTA,
     LOTADA,
+    ENCERRADA,
     FINALIZADA,
     CANCELADA
 }

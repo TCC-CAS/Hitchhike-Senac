@@ -1,115 +1,166 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/rootDetalhe"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/hh_background"
-    android:fillViewport="true">
+    android:background="@color/hh_background">
 
-    <LinearLayout
+    <ScrollView
         android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipToPadding="false"
+        android:fillViewport="true">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="@dimen/hh_screen_padding"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintWidth_max="@dimen/hh_content_max">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnVoltar"
+                    style="@style/Widget.Hitchhike.Button.Back"
+                    android:layout_width="@dimen/hh_touch_min"
+                    android:layout_height="@dimen/hh_touch_min"
+                    android:layout_marginBottom="@dimen/hh_space_sm" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/detalhe_title"
+                    android:textAppearance="@style/TextAppearance.Hitchhike.Title" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:background="@drawable/bg_card_static"
+                    android:orientation="vertical"
+                    android:padding="@dimen/hh_card_padding">
+
+                    <TextView
+                        android:id="@+id/tvTrajeto"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="@style/TextAppearance.Hitchhike.Section" />
+
+                    <TextView
+                        android:id="@+id/tvHorario"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:textColor="@color/hh_text_secondary" />
+
+                    <TextView
+                        android:id="@+id/tvMotorista"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:textColor="@color/hh_text_secondary" />
+
+                    <TextView
+                        android:id="@+id/tvVagas"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:textColor="@color/hh_text_secondary" />
+
+                    <TextView
+                        android:id="@+id/tvValor"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:textColor="@color/hh_text_secondary" />
+
+                    <TextView
+                        android:id="@+id/tvStatus"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:background="@drawable/bg_status_chip"
+                        android:paddingHorizontal="12dp"
+                        android:paddingVertical="6dp"
+                        android:textColor="@color/hh_green"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnSolicitar"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:text="@string/action_solicitar"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/tvAvaliacaoEnviada"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/avaliacao_enviada"
+                    android:textColor="@color/hh_text_secondary"
+                    android:visibility="gone" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnAvaliar"
+                    style="@style/Widget.Hitchhike.Button.Outlined"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/action_avaliar"
+                    android:visibility="gone" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnCancelar"
+                    style="@style/Widget.Material3.Button.TextButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/action_cancelar_carona"
+                    android:textColor="@color/hh_error"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/tvPedidosTitulo"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="24dp"
+                    android:text="@string/detalhe_pedidos"
+                    android:textAppearance="@style/TextAppearance.Hitchhike.Section"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/tvPedidosVazio"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/pedidos_vazio"
+                    android:textColor="@color/hh_text_secondary"
+                    android:visibility="gone" />
+
+                <LinearLayout
+                    android:id="@+id/listaPedidos"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical" />
+            </LinearLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </ScrollView>
+
+    <ProgressBar
+        android:id="@+id/progressDetalhe"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="24dp">
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnVoltar"
-            style="@style/Widget.Material3.Button.TextButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/action_voltar"
-            android:textColor="@color/hh_green" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/detalhe_title"
-            android:textAppearance="@style/TextAppearance.Hitchhike.Title" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:background="@drawable/bg_card"
-            android:orientation="vertical"
-            android:padding="16dp">
-
-            <TextView
-                android:id="@+id/tvTrajeto"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textColor="@color/hh_text"
-                android:textSize="18sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/tvHorario"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:textColor="@color/hh_text_secondary" />
-
-            <TextView
-                android:id="@+id/tvMotorista"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:textColor="@color/hh_text_secondary" />
-
-            <TextView
-                android:id="@+id/tvVagas"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:textColor="@color/hh_text_secondary" />
-
-            <TextView
-                android:id="@+id/tvValor"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:textColor="@color/hh_text_secondary" />
-
-            <TextView
-                android:id="@+id/tvStatus"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:textColor="@color/hh_green"
-                android:textStyle="bold" />
-        </LinearLayout>
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnSolicitar"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="@string/action_solicitar"
-            android:visibility="gone" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnCancelar"
-            style="@style/Widget.Material3.Button.TextButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="@string/action_cancelar_carona"
-            android:textColor="@color/hh_error"
-            android:visibility="gone" />
-
-        <TextView
-            android:id="@+id/tvPedidosTitulo"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:text="@string/detalhe_pedidos"
-            android:textStyle="bold"
-            android:visibility="gone" />
-
-        <LinearLayout
-            android:id="@+id/listaPedidos"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical" />
-    </LinearLayout>
-</ScrollView>
+        android:layout_gravity="center"
+        android:contentDescription="@string/estado_carregando"
+        android:visibility="gone" />
+</FrameLayout>

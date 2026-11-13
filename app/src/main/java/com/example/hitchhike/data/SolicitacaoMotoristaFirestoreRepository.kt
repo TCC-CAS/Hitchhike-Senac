@@ -43,8 +43,64 @@ class SolicitacaoMotoristaFirestoreRepository {
             return
         }
 
+        db.collection("solicitacoes_motoristas")
+            .document(usuario.uid)
+            .get()
+            .addOnSuccessListener { documento ->
+                if (documento.exists()) {
+                    onError("ja_enviada")
+                    return@addOnSuccessListener
+                }
+                enviarNovoPedido(
+                    usuario.uid,
+                    placaNormalizada,
+                    modeloNormalizado,
+                    corNormalizada,
+                    onSuccess,
+                    onError
+                )
+            }
+            .addOnFailureListener { erro ->
+                onError(
+                    erro.localizedMessage
+                        ?: "Erro ao consultar solicitação existente."
+                )
+            }
+    }
+
+    fun consultar(
+        onSuccess: (Boolean) -> Unit,
+        onError: (String) -> Unit
+    ) {
+        val usuario = auth.currentUser
+        if (usuario == null || !usuario.isEmailVerified) {
+            onError("Usuário não autenticado ou e-mail não verificado.")
+            return
+        }
+
+        db.collection("solicitacoes_motoristas")
+            .document(usuario.uid)
+            .get()
+            .addOnSuccessListener { documento ->
+                onSuccess(documento.exists())
+            }
+            .addOnFailureListener { erro ->
+                onError(
+                    erro.localizedMessage ?: "Erro ao consultar solicitação."
+                )
+            }
+    }
+
+    private fun enviarNovoPedido(
+        uid: String,
+        placaNormalizada: String,
+        modeloNormalizado: String,
+        corNormalizada: String,
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit
+    ) {
         val dados = hashMapOf(
-            "motoristaUid" to usuario.uid,
+            "motoristaUid" to uid,
             "placa" to placaNormalizada,
             "modelo" to modeloNormalizado,
             "cor" to corNormalizada,
@@ -53,7 +109,7 @@ class SolicitacaoMotoristaFirestoreRepository {
         )
 
         db.collection("solicitacoes_motoristas")
-            .document(usuario.uid)
+            .document(uid)
             .set(dados)
             .addOnSuccessListener {
                 onSuccess()

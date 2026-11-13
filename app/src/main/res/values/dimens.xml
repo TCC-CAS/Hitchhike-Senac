@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="hh_screen_padding">24dp</dimen>
+    <dimen name="hh_card_padding">20dp</dimen>
+    <dimen name="hh_card_radius">20dp</dimen>
+    <dimen name="hh_space_sm">8dp</dimen>
+    <dimen name="hh_space_md">16dp</dimen>
+    <dimen name="hh_space_lg">24dp</dimen>
+    <dimen name="hh_touch_min">48dp</dimen>
+    <dimen name="hh_button_min">56dp</dimen>
+    <dimen name="hh_content_max">560dp</dimen>
+</resources>

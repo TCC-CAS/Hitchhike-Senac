@@ -13,6 +13,13 @@
         android:orientation="vertical"
         android:padding="24dp">
 
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnVoltar"
+            style="@style/Widget.Hitchhike.Button.Back"
+            android:layout_width="@dimen/hh_touch_min"
+            android:layout_height="@dimen/hh_touch_min"
+            android:layout_marginBottom="@dimen/hh_space_sm" />
+
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

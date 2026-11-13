@@ -9,12 +9,12 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.example.hitchhike.R
 import com.example.hitchhike.data.PapelUsuario
-import com.example.hitchhike.data.PlanoAssinatura
 import com.example.hitchhike.data.SessionManager
 import com.example.hitchhike.data.UsuarioEntity
 import com.example.hitchhike.data.UsuarioRepository
 import com.example.hitchhike.databinding.ActivityPerfilBinding
 import kotlinx.coroutines.launch
+import com.example.hitchhike.data.SincronizacaoCondutorValidado
 import com.example.hitchhike.data.UsuarioFirestoreRepository
 import com.google.firebase.auth.FirebaseAuth
 
@@ -25,6 +25,7 @@ class PerfilActivity : AppCompatActivity() {
     private var usuario: UsuarioEntity? = null
     private var atualizandoSwitch = false
     private val firestoreRepository = UsuarioFirestoreRepository()
+    private lateinit var sincronizacaoCondutor: SincronizacaoCondutorValidado
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -35,11 +36,18 @@ class PerfilActivity : AppCompatActivity() {
 
         repository = UsuarioRepository(this)
         session = SessionManager(this)
+        sincronizacaoCondutor = SincronizacaoCondutorValidado(
+            firestore = firestoreRepository,
+            usuarios = repository,
+            session = session
+        )
 
         if (!session.estaLogado()) {
             irParaLogin()
             return
         }
+
+        configurarBotaoVoltar(binding.btnVoltar)
 
 
         binding.switchPapel.setOnCheckedChangeListener { _, checked ->
@@ -113,17 +121,6 @@ class PerfilActivity : AppCompatActivity() {
         binding.btnCompletarMotorista.setOnClickListener {
             startActivity(Intent(this, VerificacaoMotoristaActivity::class.java))
         }
-        binding.btnEditarVeiculo.setOnClickListener {
-            startActivity(Intent(this, VerificacaoMotoristaActivity::class.java))
-        }
-        binding.btnPlanoPremium.setOnClickListener {
-            val atual = usuario ?: return@setOnClickListener
-            lifecycleScope.launch {
-                repository.atualizarPlano(atual, PlanoAssinatura.PREMIUM)
-                Toast.makeText(this@PerfilActivity, getString(R.string.sucesso_plano), Toast.LENGTH_SHORT).show()
-                carregar()
-            }
-        }
         binding.btnSair.setOnClickListener {
             session.encerrarSessao()
             irParaLogin()
@@ -132,7 +129,11 @@ class PerfilActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        if (session.estaLogado()) carregar()
+        if (!session.estaLogado()) return
+        carregar()
+        sincronizacaoCondutor.executar(lifecycleScope) {
+            carregar()
+        }
     }
 
     private fun carregar() {
@@ -171,15 +172,6 @@ class PerfilActivity : AppCompatActivity() {
                 user.totalViagens
             )
         }
-
-        val planoTexto = if (user.plano == PlanoAssinatura.PREMIUM.name) {
-            getString(R.string.plano_premium)
-        } else {
-            getString(R.string.plano_gratuito)
-        }
-        binding.tvPlano.text = "$planoTexto\nUso nesta semana: ${user.caronasNaSemana} de ${user.limiteSemanal()}"
-        binding.btnPlanoPremium.visibility =
-            if (user.plano == PlanoAssinatura.PREMIUM.name) View.GONE else View.VISIBLE
 
         binding.bannerMotorista.visibility =
             if (motorista && !user.condutorValidado) View.VISIBLE else View.GONE

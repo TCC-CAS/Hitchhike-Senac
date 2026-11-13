@@ -6,6 +6,8 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.example.hitchhike.data.SessionManager
+import com.example.hitchhike.data.SincronizacaoCondutorValidado
+import com.example.hitchhike.data.UsuarioFirestoreRepository
 import com.example.hitchhike.data.UsuarioRepository
 import com.example.hitchhike.databinding.ActivityMainBinding
 import com.example.hitchhike.ui.BuscarCaronaActivity
@@ -21,6 +23,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private lateinit var session: SessionManager
     private lateinit var repository: UsuarioRepository
+    private lateinit var sincronizacaoCondutor: SincronizacaoCondutorValidado
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -36,6 +39,11 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
         binding.rootHome.applySystemInsets()
         repository = UsuarioRepository(this)
+        sincronizacaoCondutor = SincronizacaoCondutorValidado(
+            firestore = UsuarioFirestoreRepository(),
+            usuarios = repository,
+            session = session
+        )
 
         binding.cardBuscar.setOnClickListener {
             startActivity(Intent(this, BuscarCaronaActivity::class.java))
@@ -52,6 +60,11 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         if (!session.estaLogado()) return
+        atualizarSaudacao()
+        sincronizacaoCondutor.executar(lifecycleScope)
+    }
+
+    private fun atualizarSaudacao() {
         lifecycleScope.launch {
             val usuario = repository.buscar(session.usuarioId()) ?: return@launch
             binding.tvSaudacao.text = getString(R.string.home_saudacao, usuario.nome)

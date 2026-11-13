@@ -27,8 +27,8 @@
     <string name="instituicao_padrao">Centro Universitário Senac – Santo Amaro</string>
 
     <string name="recuperar_title">Recuperar senha</string>
-    <string name="recuperar_subtitle">Enviaremos um código de verificação para o e-mail institucional cadastrado.</string>
-    <string name="action_enviar_codigo">Enviar código</string>
+    <string name="recuperar_subtitle">Enviaremos um link para redefinir a senha no e-mail institucional cadastrado.</string>
+    <string name="action_enviar_codigo">Enviar e-mail de recuperação</string>
     <string name="hint_codigo">Código de verificação</string>
     <string name="hint_nova_senha">Nova senha</string>
     <string name="action_redefinir">Redefinir senha</string>
@@ -60,7 +60,8 @@
     <string name="cnh_anexada">Documento marcado como anexado (simulação).</string>
     <string name="action_salvar_condutor">Salvar dados do motorista</string>
 
-    <string name="erro_email_institucional">Use um e-mail @senac.br ou @sp.senac.br</string>
+    <string name="erro_email_institucional">Use um e-mail @senacsp.edu.br, @sp.senac.br ou @senac.br</string>
+    <string name="ajuda_email_institucional">Aluno: @senacsp.edu.br · Professor: @sp.senac.br</string>
     <string name="erro_campos_obrigatorios">Preencha todos os campos obrigatórios</string>
     <string name="erro_senhas_diferentes">As senhas não coincidem</string>
     <string name="erro_senha_curta">A senha deve ter pelo menos 6 caracteres</string>
@@ -111,24 +112,74 @@
     <string name="detalhe_pedidos">Pedidos de vaga</string>
     <string name="action_solicitar">Pedir vaga</string>
     <string name="action_cancelar_carona">Cancelar carona</string>
+    <string name="action_avaliar">Avaliar</string>
+    <string name="action_avaliar_passageiros">Avaliar passageiros</string>
+    <string name="avaliacao_enviada">Avaliação enviada</string>
+    <string name="avaliacao_titulo">Avaliar com estrelas</string>
+    <string name="avaliacao_instrucao">Escolha uma nota inteira de 1 a 5.</string>
+    <string name="avaliacao_enviar">Enviar avaliação</string>
+    <string name="avaliacao_sucesso">Avaliação enviada.</string>
+    <string name="avaliacao_nota_pendente">Selecione de 1 a 5 estrelas.</string>
+    <string name="cd_estrela">%1$d estrelas</string>
     <string name="action_aceitar">Aceitar</string>
     <string name="action_recusar">Recusar</string>
 
     <string name="minhas_title">Minhas caronas</string>
+    <string name="minhas_tab_proximas">Próximas</string>
+    <string name="minhas_tab_historico">Histórico</string>
+    <string name="cd_abas_minhas">Alternar entre viagens próximas e histórico</string>
     <string name="minhas_oferecidas">Caronas que ofereci</string>
     <string name="minhas_oferecidas_vazio">Você ainda não publicou caronas.</string>
+    <string name="minhas_oferecidas_proximas_vazio">Nenhuma carona futura publicada.</string>
+    <string name="minhas_oferecidas_historico_vazio">Nenhuma carona encerrada ainda.</string>
     <string name="minhas_solicitacoes">Pedidos que fiz</string>
     <string name="minhas_solicitacoes_vazio">Você ainda não pediu vaga.</string>
+    <string name="minhas_pedidos_proximas_vazio">Nenhum pedido em andamento.</string>
+    <string name="minhas_pedidos_historico_vazio">Nenhum pedido no histórico.</string>
+    <string name="etiqueta_aberta">Aberta</string>
+    <string name="etiqueta_lotada">Lotada</string>
+    <string name="etiqueta_encerrada">Encerrada</string>
+    <string name="etiqueta_pendente">Pendente</string>
+    <string name="etiqueta_aceita">Aceita</string>
+    <string name="etiqueta_recusada">Recusada</string>
+    <string name="etiqueta_cancelada">Cancelada</string>
+    <string name="minhas_pedido_detalhe">Pedido de vaga</string>
+    <string name="minhas_pedido_sem_detalhe">Detalhes indisponíveis</string>
 
     <string name="erro_motorista">Motorista ainda não aprovado. Aguarde a validação do cadastro.</string>
     <string name="erro_vagas">Informe de 1 a 4 vagas.</string>
     <string name="erro_vaga">Não há vaga disponível.</string>
+    <string name="erro_carona_nao_disponivel">Esta carona não está disponível para novas solicitações.</string>
     <string name="erro_autosolicitacao">Você não pode pedir vaga na própria carona.</string>
     <string name="erro_ja_solicitou">Você já pediu esta carona.</string>
     <string name="sucesso_publicar">Carona publicada.</string>
     <string name="sucesso_solicitar">Pedido enviado. O motorista precisa aceitar.</string>
     <string name="sucesso_aceitar">Pedido aceito. A vaga foi reservada.</string>
     <string name="sucesso_cancelar">Carona cancelada.</string>
+    <string name="estado_carregando">Carregando…</string>
+    <string name="estado_enviando">Enviando…</string>
+    <string name="estado_publicando">Publicando carona…</string>
+    <string name="completar_cadastro_title">Concluir cadastro</string>
+    <string name="completar_cadastro_subtitle">Sua conta já está verificada. Preencha seus dados para criar o perfil.</string>
+    <string name="action_salvar_perfil">Salvar perfil e entrar</string>
+    <string name="solicitacao_ja_enviada">Solicitação já enviada. Aguarde a aprovação no sistema.</string>
+    <string name="banner_motorista_aguardando">Seus dados foram enviados. Aguarde a aprovação para oferecer caronas.</string>
+    <string name="motorista_generico">Motorista cadastrado</string>
+    <string name="passageiro_generico">Passageiro</string>
+    <string name="status_pedido_pendente">Aguardando motorista</string>
+    <string name="status_pedido_aceita">Pedido aceito</string>
+    <string name="status_pedido_recusada">Solicitação recusada</string>
+    <string name="action_simular_pagamento">Simular pagamento</string>
+    <string name="pedidos_vazio">Nenhum pedido de vaga ainda.</string>
+    <string name="cd_voltar">Voltar</string>
+    <string name="cd_buscar_carona">Buscar carona para o campus</string>
+    <string name="cd_oferecer_carona">Oferecer uma carona</string>
+    <string name="cd_minhas_caronas">Ver minhas caronas e pedidos</string>
+    <string name="cd_item_carona">Abrir detalhes da carona de %1$s para %2$s</string>
+    <string name="erro_origem_destino_tamanho">Origem e destino devem ter até 150 caracteres.</string>
+    <string name="erro_carona_online">Não foi possível abrir esta carona. Busque novamente na lista online.</string>
+    <string name="aceite_termos_curto">Li e aceito os Termos de Uso e a Política de Privacidade.</string>
+    <string name="home_campus">Senac Santo Amaro</string>
 
     <string-array name="origens_campus">
         <item>Santo Amaro</item>

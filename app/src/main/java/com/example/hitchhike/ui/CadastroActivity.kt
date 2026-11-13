@@ -52,6 +52,8 @@ class CadastroActivity : AppCompatActivity() {
             binding.etCurso.showDropDown()
         }
 
+        configurarBotaoVoltar(binding.btnVoltar)
+
         binding.btnCadastrar.setOnClickListener {
             cadastrar()
         }

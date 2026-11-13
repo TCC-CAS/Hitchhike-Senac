@@ -28,6 +28,7 @@ class VerificacaoMotoristaActivity : AppCompatActivity() {
         binding = ActivityVerificacaoMotoristaBinding.inflate(layoutInflater)
         setContentView(binding.root)
         binding.rootVerificacao.applySystemInsets()
+        configurarBotaoVoltar(binding.btnVoltar)
 
         repository = UsuarioRepository(this)
         session = SessionManager(this)

@@ -126,6 +126,7 @@ class UsuarioRepository(context: Context) {
     }
 
 
+    @Deprecated("Modelo de assinaturas descontinuado em favor do uso gratuito com taxa por carona.")
     suspend fun atualizarPlano(usuario: UsuarioEntity, plano: PlanoAssinatura) {
         dao.atualizar(usuario.copy(plano = plano.name))
     }

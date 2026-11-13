@@ -32,7 +32,6 @@ data class UsuarioEntity(
 ) {
     fun isMotoristaAtivo(): Boolean = papelAtivo == PapelUsuario.MOTORISTA.name
 
-    fun limiteSemanal(): Int {
-        return if (plano == PlanoAssinatura.PREMIUM.name) 5 else 2
-    }
+    @Deprecated("Modelo de assinaturas descontinuado em favor do uso gratuito com taxa por carona.")
+    fun limiteSemanal(): Int = Int.MAX_VALUE
 }
