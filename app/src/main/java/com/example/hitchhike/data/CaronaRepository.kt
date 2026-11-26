@@ -4,6 +4,7 @@ import android.content.Context
 
 class CaronaRepository(context: Context) {
     private val dao = AppDatabase.get(context).caronaDao()
+    private val usuarioDao = AppDatabase.get(context).usuarioDao()
 
     suspend fun publicar(
         motorista: UsuarioEntity,
@@ -13,10 +14,11 @@ class CaronaRepository(context: Context) {
         vagas: Int,
         valor: Double
     ): Result<Long> = runCatching {
-        check(motorista.condutorValidado) { "motorista_nao_validado" }
+        check(motorista.podeAtuarComoMotorista()) { "motorista_nao_validado" }
         require(origem.isNotBlank() && destino.isNotBlank()) { "trajeto_incompleto" }
         require(vagas in 1..4) { "vagas_invalidas" }
         require(valor >= 0) { "valor_invalido" }
+        require(dataHoraSaida > System.currentTimeMillis()) { "horario_passado" }
         dao.inserir(
             CaronaEntity(
                 motoristaId = motorista.id,
@@ -48,7 +50,11 @@ class CaronaRepository(context: Context) {
     suspend fun solicitar(caronaId: Long, passageiroId: Long): Result<Long> = runCatching {
         val carona = requireNotNull(dao.buscarPorId(caronaId)) { "carona_inexistente" }
         check(carona.motoristaId != passageiroId) { "autosolicitacao" }
-        check(carona.status == StatusCarona.ABERTA.name && carona.vagasDisponiveis > 0) {
+        check(
+            carona.status == StatusCarona.ABERTA.name &&
+                carona.vagasDisponiveis > 0 &&
+                carona.dataHoraSaida > System.currentTimeMillis()
+        ) {
             "carona_indisponivel"
         }
         dao.solicitar(
@@ -56,12 +62,28 @@ class CaronaRepository(context: Context) {
         )
     }
 
-    suspend fun aceitar(solicitacaoId: Long): Result<Unit> = runCatching {
+    suspend fun aceitar(solicitacaoId: Long, motoristaAutenticadoId: Long? = null): Result<Unit> = runCatching {
+        val solicitacao = requireNotNull(dao.buscarSolicitacao(solicitacaoId)) { "solicitacao_inexistente" }
+        check(solicitacao.status == StatusSolicitacao.PENDENTE.name) { "status_invalido" }
+        val carona = requireNotNull(dao.buscarPorId(solicitacao.caronaId)) { "carona_inexistente" }
+        if (motoristaAutenticadoId != null) {
+            check(carona.motoristaId == motoristaAutenticadoId) { "nao_autorizado" }
+        }
+        check(carona.status == StatusCarona.ABERTA.name && carona.dataHoraSaida > System.currentTimeMillis()) {
+            "carona_indisponivel"
+        }
+        val motorista = requireNotNull(usuarioDao.buscarPorId(carona.motoristaId)) { "motorista_inexistente" }
+        val elegibilidade = motorista.elegibilidadeMotorista(exigirPapelMotorista = false)
+        check(elegibilidade.apto) { ElegibilidadeMotorista.mensagemBloqueio(elegibilidade.estado, elegibilidade.motivoRecusa) }
         check(dao.aceitarSolicitacao(solicitacaoId)) { "vaga_indisponivel" }
     }
 
-    suspend fun recusar(solicitacaoId: Long): Result<Unit> = runCatching {
+    suspend fun recusar(solicitacaoId: Long, motoristaAutenticadoId: Long? = null): Result<Unit> = runCatching {
         val solicitacao = requireNotNull(dao.buscarSolicitacao(solicitacaoId)) { "solicitacao_inexistente" }
+        if (motoristaAutenticadoId != null) {
+            val carona = requireNotNull(dao.buscarPorId(solicitacao.caronaId)) { "carona_inexistente" }
+            check(carona.motoristaId == motoristaAutenticadoId) { "nao_autorizado" }
+        }
         check(solicitacao.status == StatusSolicitacao.PENDENTE.name) { "status_invalido" }
         dao.atualizarStatus(solicitacaoId, StatusSolicitacao.RECUSADA.name)
     }

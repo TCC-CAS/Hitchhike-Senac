@@ -348,6 +348,24 @@
                         android:textSize="12sp" />
                 </LinearLayout>
 
+                <TextView
+                    android:id="@+id/tvMpStatus"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:textColor="@color/hh_text_secondary"
+                    android:textSize="13sp"
+                    android:visibility="gone" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnVincularMp"
+                    style="@style/Widget.Hitchhike.Button.Outlined"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/action_vincular_mp"
+                    android:visibility="gone" />
+
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnPublicar"
                     android:layout_width="match_parent"

@@ -2,6 +2,7 @@
 package com.example.hitchhike.util
 
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.UserProfileChangeRequest
 
 class FirebaseAuthManager {
 
@@ -11,11 +12,18 @@ class FirebaseAuthManager {
     fun cadastrar(
         email: String,
         senha: String,
+        nome: String = "",
         onSuccess: (String) -> Unit,
         onError: (String) -> Unit
     ) {
         if (!InstitutionalEmailValidator.isValid(email)) {
             onError("Utilize um e-mail institucional válido.")
+            return
+        }
+
+        val erroSenha = PasswordValidator.mensagemErro(senha)
+        if (erroSenha != null) {
+            onError(erroSenha)
             return
         }
 
@@ -28,19 +36,34 @@ class FirebaseAuthManager {
                     return@addOnSuccessListener
                 }
 
-                usuario.sendEmailVerification()
-                    .addOnSuccessListener {
-                        val uid = usuario.uid
-                        auth.signOut()
-                        onSuccess(uid)
-                    }
-                    .addOnFailureListener { erro ->
-                        auth.signOut()
-                        onError(
-                            erro.localizedMessage
-                                ?: "Erro ao enviar confirmação."
-                        )
-                    }
+                val enviarConfirmacao = {
+                    usuario.sendEmailVerification()
+                        .addOnSuccessListener {
+                            val uid = usuario.uid
+                            auth.signOut()
+                            onSuccess(uid)
+                        }
+                        .addOnFailureListener { erro ->
+                            auth.signOut()
+                            onError(
+                                erro.localizedMessage
+                                    ?: "Erro ao enviar confirmação."
+                            )
+                        }
+                }
+
+                val nomeLimpo = nome.trim()
+                if (nomeLimpo.isNotBlank()) {
+                    val req = UserProfileChangeRequest.Builder()
+                        .setDisplayName(nomeLimpo)
+                        .build()
+                    usuario.updateProfile(req)
+                        .addOnCompleteListener {
+                            enviarConfirmacao()
+                        }
+                } else {
+                    enviarConfirmacao()
+                }
             }
             .addOnFailureListener { erro ->
                 onError(

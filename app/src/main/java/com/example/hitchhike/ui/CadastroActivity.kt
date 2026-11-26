@@ -1,4 +1,3 @@
-
 package com.example.hitchhike.ui
 
 import android.content.Intent
@@ -11,21 +10,26 @@ import android.text.style.ClickableSpan
 import android.text.style.ForegroundColorSpan
 import android.view.View
 import android.widget.ArrayAdapter
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
+import androidx.core.widget.doAfterTextChanged
 import com.example.hitchhike.R
+import com.example.hitchhike.data.CadastroPendenteManager
 import com.example.hitchhike.data.PapelUsuario
 import com.example.hitchhike.databinding.ActivityCadastroBinding
 import com.example.hitchhike.util.FirebaseAuthManager
 import com.example.hitchhike.util.InstitutionalEmailValidator
-import com.example.hitchhike.data.CadastroPendenteManager
+import com.example.hitchhike.util.PasswordValidator
 
 class CadastroActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityCadastroBinding
     private val firebaseAuthManager = FirebaseAuthManager()
     private lateinit var cadastroPendente: CadastroPendenteManager
+    private var cadastroEmAndamento = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -54,6 +58,17 @@ class CadastroActivity : AppCompatActivity() {
 
         configurarBotaoVoltar(binding.btnVoltar)
 
+        binding.etSenha.doAfterTextChanged {
+            binding.tilSenha.error = null
+            atualizarChecklistSenha()
+        }
+        binding.etConfirmarSenha.doAfterTextChanged {
+            binding.tilConfirmarSenha.error = null
+            atualizarChecklistSenha()
+        }
+
+        atualizarChecklistSenha()
+
         binding.btnCadastrar.setOnClickListener {
             cadastrar()
         }
@@ -63,6 +78,96 @@ class CadastroActivity : AppCompatActivity() {
         }
 
         configurarLinksTermos()
+    }
+
+    private fun atualizarChecklistSenha() {
+        val senha = binding.etSenha.text?.toString().orEmpty()
+        val confirmar = binding.etConfirmarSenha.text?.toString().orEmpty()
+        val resultado = PasswordValidator.avaliar(senha, confirmar)
+
+        val corAtendido = ContextCompat.getColor(this, R.color.hh_green)
+        val corPendente = ContextCompat.getColor(this, R.color.hh_text_secondary)
+
+        aplicarEstadoRequisito(
+            view = binding.tvReqTamanho,
+            atendido = resultado.tamanhoMinimo,
+            rotulo = getString(R.string.senha_req_minimo_8),
+            corAtendido = corAtendido,
+            corPendente = corPendente
+        )
+        aplicarEstadoRequisito(
+            view = binding.tvReqMaiuscula,
+            atendido = resultado.temMaiuscula,
+            rotulo = getString(R.string.senha_req_maiuscula),
+            corAtendido = corAtendido,
+            corPendente = corPendente
+        )
+        aplicarEstadoRequisito(
+            view = binding.tvReqMinuscula,
+            atendido = resultado.temMinuscula,
+            rotulo = getString(R.string.senha_req_minuscula),
+            corAtendido = corAtendido,
+            corPendente = corPendente
+        )
+        aplicarEstadoRequisito(
+            view = binding.tvReqNumero,
+            atendido = resultado.temNumero,
+            rotulo = getString(R.string.senha_req_numero),
+            corAtendido = corAtendido,
+            corPendente = corPendente
+        )
+        aplicarEstadoRequisito(
+            view = binding.tvReqEspecial,
+            atendido = resultado.temEspecial,
+            rotulo = getString(R.string.senha_req_especial),
+            corAtendido = corAtendido,
+            corPendente = corPendente
+        )
+        aplicarEstadoRequisito(
+            view = binding.tvReqConfirmacao,
+            atendido = resultado.confirmacaoCorresponde,
+            rotulo = getString(R.string.senha_req_confirmacao),
+            corAtendido = corAtendido,
+            corPendente = corPendente
+        )
+
+        binding.progressForcaSenha.progress = resultado.requisitosAtendidos
+
+        if (resultado.senhaForte) {
+            binding.tvIndicadorForcaSenha.setTextColor(corAtendido)
+            binding.tvIndicadorForcaSenha.text = getString(
+                R.string.senha_indicador_completa,
+                resultado.requisitosAtendidos,
+                resultado.totalRequisitos
+            )
+        } else {
+            binding.tvIndicadorForcaSenha.setTextColor(corPendente)
+            binding.tvIndicadorForcaSenha.text = getString(
+                R.string.senha_indicador_progresso,
+                resultado.requisitosAtendidos,
+                resultado.totalRequisitos
+            )
+        }
+
+        if (confirmar.isNotEmpty() && !resultado.confirmacaoCorresponde) {
+            binding.tilConfirmarSenha.error = getString(R.string.erro_senhas_diferentes)
+        } else {
+            binding.tilConfirmarSenha.error = null
+        }
+    }
+
+    private fun aplicarEstadoRequisito(
+        view: TextView,
+        atendido: Boolean,
+        rotulo: String,
+        corAtendido: Int,
+        corPendente: Int
+    ) {
+        view.setTextColor(if (atendido) corAtendido else corPendente)
+        view.text = getString(
+            if (atendido) R.string.senha_req_atendido else R.string.senha_req_pendente,
+            rotulo
+        )
     }
 
     private fun configurarLinksTermos() {
@@ -135,6 +240,8 @@ class CadastroActivity : AppCompatActivity() {
     }
 
     private fun cadastrar() {
+        if (cadastroEmAndamento) return
+
         val nome = binding.etNome.text?.toString()?.trim().orEmpty()
         val curso = binding.etCurso.text?.toString()?.trim().orEmpty()
         val instituicao =
@@ -157,7 +264,7 @@ class CadastroActivity : AppCompatActivity() {
 
         if (nome.isBlank() || curso.isBlank() ||
             instituicao.isBlank() || email.isBlank() ||
-            senha.isBlank()
+            senha.isBlank() || confirmar.isBlank()
         ) {
             Toast.makeText(
                 this,
@@ -182,27 +289,34 @@ class CadastroActivity : AppCompatActivity() {
             return
         }
 
-        if (senha.length < 6) {
-            binding.tilSenha.error =
-                getString(R.string.erro_senha_curta)
+        val validacaoSenha = PasswordValidator.avaliar(senha, confirmar)
+        if (!validacaoSenha.senhaForte) {
+            val erroEspecifico = PasswordValidator.mensagemErro(senha)
+                ?: getString(R.string.erro_senha_fraca)
+            binding.tilSenha.error = erroEspecifico
+            Toast.makeText(
+                this,
+                getString(R.string.erro_senha_fraca),
+                Toast.LENGTH_LONG
+            ).show()
             return
         }
 
-        if (senha != confirmar) {
+        if (!validacaoSenha.confirmacaoCorresponde) {
             binding.tilConfirmarSenha.error =
                 getString(R.string.erro_senhas_diferentes)
             return
         }
 
+        cadastroEmAndamento = true
         binding.btnCadastrar.isEnabled = false
 
         firebaseAuthManager.cadastrar(
             email = email,
             senha = senha,
-
+            nome = nome,
 
             onSuccess = { uid ->
-
                 cadastroPendente.salvar(
                     uid = uid,
                     nome = nome,
@@ -212,6 +326,7 @@ class CadastroActivity : AppCompatActivity() {
                     papel = papel
                 )
 
+                cadastroEmAndamento = false
                 binding.btnCadastrar.isEnabled = true
 
                 Toast.makeText(
@@ -223,8 +338,8 @@ class CadastroActivity : AppCompatActivity() {
                 finish()
             },
 
-
             onError = { erro ->
+                cadastroEmAndamento = false
                 binding.btnCadastrar.isEnabled = true
 
                 Toast.makeText(

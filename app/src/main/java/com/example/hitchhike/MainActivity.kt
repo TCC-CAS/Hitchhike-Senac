@@ -74,10 +74,33 @@ class MainActivity : AppCompatActivity() {
     private fun oferecer() {
         lifecycleScope.launch {
             val usuario = repository.buscar(session.usuarioId()) ?: return@launch
-            if (usuario.condutorValidado) {
-                startActivity(Intent(this@MainActivity, OferecerCaronaActivity::class.java))
-            } else {
-                startActivity(Intent(this@MainActivity, VerificacaoMotoristaActivity::class.java))
+            val elegibilidade = usuario.elegibilidadeMotorista()
+            when {
+                elegibilidade.apto -> {
+                    startActivity(Intent(this@MainActivity, OferecerCaronaActivity::class.java))
+                }
+                elegibilidade.estado == com.example.hitchhike.data.EstadoMotorista.PAPEL_PASSAGEIRO -> {
+                    android.widget.Toast.makeText(
+                        this@MainActivity,
+                        com.example.hitchhike.data.ElegibilidadeMotorista.mensagemBloqueio(
+                            elegibilidade.estado,
+                            elegibilidade.motivoRecusa
+                        ),
+                        android.widget.Toast.LENGTH_LONG
+                    ).show()
+                    startActivity(Intent(this@MainActivity, PerfilActivity::class.java))
+                }
+                else -> {
+                    android.widget.Toast.makeText(
+                        this@MainActivity,
+                        com.example.hitchhike.data.ElegibilidadeMotorista.mensagemBloqueio(
+                            elegibilidade.estado,
+                            elegibilidade.motivoRecusa
+                        ),
+                        android.widget.Toast.LENGTH_LONG
+                    ).show()
+                    startActivity(Intent(this@MainActivity, VerificacaoMotoristaActivity::class.java))
+                }
             }
         }
     }

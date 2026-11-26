@@ -87,6 +87,64 @@ class OferecerCaronaActivity : AppCompatActivity() {
         set(Calendar.MILLISECOND, 0)
     }
 
+    private val pagamentoRepository = com.example.hitchhike.data.PagamentoRepository()
+
+    override fun onResume() {
+        super.onResume()
+        atualizarVinculoMp()
+    }
+
+    /** Mostra o bloco do Mercado Pago somente quando o backend responde; senão a tela fica como antes. */
+    private fun atualizarVinculoMp() {
+        lifecycleScope.launch {
+            pagamentoRepository.consultarVinculoMp().fold(
+                onSuccess = { vinculo ->
+                    val aviso = if (vinculo.splitAtivo) "" else getString(R.string.mp_split_desativado)
+                    binding.tvMpStatus.text = getString(
+                        if (vinculo.vinculado) R.string.mp_vinculo_ok else R.string.mp_vinculo_pendente
+                    ) + aviso
+                    binding.tvMpStatus.visibility = android.view.View.VISIBLE
+                    binding.btnVincularMp.visibility =
+                        if (vinculo.vinculado) android.view.View.GONE else android.view.View.VISIBLE
+                    binding.btnVincularMp.setOnClickListener { iniciarVinculoMp() }
+                },
+                onFailure = {
+                    binding.tvMpStatus.visibility = android.view.View.GONE
+                    binding.btnVincularMp.visibility = android.view.View.GONE
+                }
+            )
+        }
+    }
+
+    private fun iniciarVinculoMp() {
+        binding.btnVincularMp.isEnabled = false
+        lifecycleScope.launch {
+            pagamentoRepository.iniciarVinculoMp().fold(
+                onSuccess = { url ->
+                    binding.btnVincularMp.isEnabled = true
+                    try {
+                        androidx.browser.customtabs.CustomTabsIntent.Builder().build()
+                            .launchUrl(this@OferecerCaronaActivity, android.net.Uri.parse(url))
+                    } catch (e: Exception) {
+                        Toast.makeText(
+                            this@OferecerCaronaActivity,
+                            "Nenhum navegador disponível para abrir a autorização.",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+                },
+                onFailure = {
+                    binding.btnVincularMp.isEnabled = true
+                    Toast.makeText(
+                        this@OferecerCaronaActivity,
+                        it.message ?: "Não foi possível iniciar o vínculo.",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            )
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -594,13 +652,16 @@ class OferecerCaronaActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
             val motorista = usuarioRepository.buscar(session.usuarioId())
+            val elegibilidade = motorista?.elegibilidadeMotorista()
 
-            if (motorista == null || !motorista.condutorValidado ||
-                !motorista.isMotoristaAtivo()
-            ) {
+            if (motorista == null || elegibilidade == null || !elegibilidade.apto) {
                 Toast.makeText(
                     this@OferecerCaronaActivity,
-                    "É necessário ser um motorista aprovado.",
+                    if (elegibilidade != null) {
+                        com.example.hitchhike.data.ElegibilidadeMotorista.mensagemBloqueio(elegibilidade.estado)
+                    } else {
+                        "É necessário ser um motorista aprovado com CNH vigente."
+                    },
                     Toast.LENGTH_LONG
                 ).show()
                 return@launch

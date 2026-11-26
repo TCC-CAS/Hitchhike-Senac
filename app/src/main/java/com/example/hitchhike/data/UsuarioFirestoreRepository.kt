@@ -1,4 +1,3 @@
-
 package com.example.hitchhike.data
 
 import com.google.firebase.firestore.FirebaseFirestore
@@ -26,7 +25,6 @@ class UsuarioFirestoreRepository {
             "papelAtivo" to papel.name,
             "status" to "ATIVO",
             "condutorValidado" to false
-
         )
 
         db.collection("usuarios")
@@ -63,13 +61,15 @@ class UsuarioFirestoreRepository {
                     "curso" to documento.getString("curso").orEmpty(),
                     "instituicao" to documento.getString("instituicao").orEmpty(),
                     "email" to documento.getString("email").orEmpty(),
-
                     "papel" to documento.getString("papelAtivo").orEmpty(),
                     "status" to documento.getString("status").orEmpty(),
                     "condutorValidado" to (
                             documento.getBoolean("condutorValidado") == true
+                            ).toString(),
+                    "cnhValidade" to documento.getString("cnhValidade").orEmpty(),
+                    "cnhRevisaoNecessaria" to (
+                            documento.getBoolean("cnhRevisaoNecessaria") == true
                             ).toString()
-
                 )
 
                 onSuccess(perfil)
@@ -99,17 +99,43 @@ class UsuarioFirestoreRepository {
             return
         }
 
-        db.collection("usuarios")
-            .document(uid)
-            .update("papelAtivo", novoPapel.name)
-            .addOnSuccessListener {
-                onSuccess()
+        val ref = db.collection("usuarios").document(uid)
+
+        if (novoPapel == PapelUsuario.PASSAGEIRO) {
+            ref.update("papelAtivo", novoPapel.name)
+                .addOnSuccessListener { onSuccess() }
+                .addOnFailureListener { erro ->
+                    onError(erro.localizedMessage ?: "Erro ao atualizar o papel no Firebase.")
+                }
+            return
+        }
+
+        ref.get(Source.SERVER)
+            .addOnSuccessListener { doc ->
+                if (!doc.exists()) {
+                    onError("Perfil não encontrado no servidor.")
+                    return@addOnSuccessListener
+                }
+                val elegibilidade = ElegibilidadeMotorista.avaliar(
+                    status = doc.getString("status"),
+                    condutorValidado = doc.getBoolean("condutorValidado") == true,
+                    papelAtivo = PapelUsuario.MOTORISTA.name,
+                    cnhValidade = doc.getString("cnhValidade"),
+                    cnhRevisaoNecessaria = doc.getBoolean("cnhRevisaoNecessaria") == true,
+                    exigirPapelMotorista = false
+                )
+                if (!elegibilidade.apto) {
+                    onError(ElegibilidadeMotorista.mensagemBloqueio(elegibilidade.estado))
+                    return@addOnSuccessListener
+                }
+                ref.update("papelAtivo", novoPapel.name)
+                    .addOnSuccessListener { onSuccess() }
+                    .addOnFailureListener { erro ->
+                        onError(erro.localizedMessage ?: "Erro ao atualizar o papel no Firebase.")
+                    }
             }
             .addOnFailureListener { erro ->
-                onError(
-                    erro.localizedMessage
-                        ?: "Erro ao atualizar o papel no Firebase."
-                )
+                onError(erro.localizedMessage ?: "Erro ao verificar elegibilidade de motorista.")
             }
     }
 

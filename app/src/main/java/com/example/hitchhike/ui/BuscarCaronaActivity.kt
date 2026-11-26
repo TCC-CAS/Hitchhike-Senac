@@ -1,6 +1,6 @@
-
 package com.example.hitchhike.ui
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -9,18 +9,22 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.example.hitchhike.R
 import com.example.hitchhike.data.CaronaFirestore
 import com.example.hitchhike.data.CaronaFirestoreRepository
 import com.example.hitchhike.data.CaronaStatusExibicao
+import com.example.hitchhike.data.CaronasBackendRepository
+import com.example.hitchhike.data.ReputacaoTexto
 import com.example.hitchhike.databinding.ActivityBuscarCaronaBinding
 import com.example.hitchhike.util.DateTimeFormat
-import android.content.Intent
+import kotlinx.coroutines.launch
 
 class BuscarCaronaActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityBuscarCaronaBinding
     private val caronaFirestoreRepository = CaronaFirestoreRepository()
+    private val caronasBackendRepository = CaronasBackendRepository()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -84,6 +88,9 @@ class BuscarCaronaActivity : AppCompatActivity() {
         binding.tvVazio.visibility =
             if (disponiveis.isEmpty()) View.VISIBLE else View.GONE
 
+        val viewsReputacaoPorMotorista = mutableMapOf<String, MutableList<TextView>>()
+        val modelosRep = CaronasUiHelper.modelosReputacao(this)
+
         disponiveis.forEach { carona ->
 
             val item = inflater.inflate(
@@ -109,9 +116,19 @@ class BuscarCaronaActivity : AppCompatActivity() {
 
             val statusExibicao = CaronaStatusExibicao.calcular(carona)
             val chip = item.findViewById<TextView>(R.id.tvStatusChip)
-            chip.text = statusExibicao
-            chip.contentDescription = statusExibicao
+            val rotuloStatus = CaronasUiHelper.rotuloStatusCarona(this, statusExibicao)
+            chip.text = rotuloStatus
+            chip.contentDescription = rotuloStatus
             chip.visibility = View.VISIBLE
+
+            val tvRep = item.findViewById<TextView>(R.id.tvReputacaoMotorista)
+            tvRep.text = "${getString(R.string.papel_motorista)} · ${getString(R.string.reputacao_sem_avaliacoes)}"
+            tvRep.visibility = View.VISIBLE
+            if (carona.motoristaUid.isNotBlank()) {
+                viewsReputacaoPorMotorista
+                    .getOrPut(carona.motoristaUid) { mutableListOf() }
+                    .add(tvRep)
+            }
 
             item.setOnClickListener {
                 val intent = Intent(
@@ -128,6 +145,25 @@ class BuscarCaronaActivity : AppCompatActivity() {
             }
 
             binding.listaCaronas.addView(item)
+        }
+
+        val uids = viewsReputacaoPorMotorista.keys.toList()
+        if (uids.isNotEmpty()) {
+            lifecycleScope.launch {
+                caronasBackendRepository.reputacaoConsultar(uids).onSuccess { mapa ->
+                    mapa.forEach { (uid, rep) ->
+                        val textoRep = ReputacaoTexto.formatarComCnh(
+                            media = rep.media,
+                            quantidade = rep.quantidade,
+                            cnhValidada = rep.cnhValidada,
+                            modelos = modelosRep
+                        )
+                        viewsReputacaoPorMotorista[uid]?.forEach { view ->
+                            view.text = "${getString(R.string.papel_motorista)} · $textoRep"
+                        }
+                    }
+                }
+            }
         }
     }
 }

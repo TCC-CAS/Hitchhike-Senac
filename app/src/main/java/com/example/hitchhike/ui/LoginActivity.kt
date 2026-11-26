@@ -2,22 +2,31 @@ package com.example.hitchhike.ui
 
 import android.content.Intent
 import android.os.Bundle
+import android.text.InputType
+import android.widget.ArrayAdapter
+import android.widget.AutoCompleteTextView
+import android.widget.EditText
+import android.widget.LinearLayout
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.example.hitchhike.MainActivity
 import com.example.hitchhike.R
+import com.example.hitchhike.data.CadastroPendenteManager
+import com.example.hitchhike.data.DadosSolicitacaoMotorista
+import com.example.hitchhike.data.PapelUsuario
 import com.example.hitchhike.data.SessionManager
+import com.example.hitchhike.data.SolicitacaoMotoristaFirestoreRepository
 import com.example.hitchhike.data.UsuarioFirestoreRepository
 import com.example.hitchhike.data.UsuarioRepository
 import com.example.hitchhike.databinding.ActivityLoginBinding
 import com.example.hitchhike.util.FirebaseAuthManager
 import com.example.hitchhike.util.InstitutionalEmailValidator
-import kotlinx.coroutines.launch
 import com.google.firebase.auth.FirebaseAuth
-import com.example.hitchhike.data.CadastroPendenteManager
-import com.example.hitchhike.data.PapelUsuario
+import kotlinx.coroutines.launch
 
 class LoginActivity : AppCompatActivity() {
     private lateinit var binding: ActivityLoginBinding
@@ -27,6 +36,7 @@ class LoginActivity : AppCompatActivity() {
 
     private val firebaseAuthManager = FirebaseAuthManager()
     private val firestoreRepository = UsuarioFirestoreRepository()
+    private val solicitacaoMotoristaRepository = SolicitacaoMotoristaFirestoreRepository()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -188,39 +198,44 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun criarPerfilPendente(uid: String) {
-        val dados = cadastroPendente.buscar(uid)
+        val usuarioFirebase = FirebaseAuth.getInstance().currentUser
+        val emailFirebase = usuarioFirebase?.email?.trim()?.lowercase()
 
-        if (dados == null) {
-            mostrarErro(
-                "Sua conta está verificada, mas ainda não possui " +
-                        "um perfil completo. Precisamos concluir seu cadastro."
-            )
+        if (usuarioFirebase == null ||
+            usuarioFirebase.uid != uid ||
+            !usuarioFirebase.isEmailVerified ||
+            emailFirebase == null ||
+            !InstitutionalEmailValidator.isValid(emailFirebase)
+        ) {
+            mostrarErro("Confirme seu e-mail institucional antes de entrar.")
             return
         }
 
-        val emailFirebase = FirebaseAuth.getInstance()
-            .currentUser?.email?.trim()?.lowercase()
+        val dados = cadastroPendente.buscar(uid)
 
-        if (emailFirebase == null ||
-            emailFirebase != dados["email"]) {
+        if (dados == null) {
+            // Primeiro login em dispositivo diferente do utilizado no cadastro (ou após limpeza de dados locais).
+            // Conclui o perfil sem criar contas duplicadas no Firebase Authentication.
+            exibirDialogConcluirCadastro(uid, emailFirebase, usuarioFirebase.displayName.orEmpty())
+            return
+        }
+
+        if (emailFirebase != dados["email"]?.trim()?.lowercase()) {
             mostrarErro("O e-mail do cadastro não corresponde à conta.")
             return
         }
 
-        val papel = try {
-            PapelUsuario.valueOf(dados["papel"].orEmpty())
-        } catch (e: IllegalArgumentException) {
-            mostrarErro("Papel do usuário inválido.")
-            return
-        }
+        // Todo perfil inicia no Firestore como PASSAGEIRO com condutorValidado = false;
+        // a habilitação para MOTORISTA depende exclusivamente da validação administrativa da CNH.
+        val papelInicial = PapelUsuario.PASSAGEIRO
 
         firestoreRepository.salvarPerfil(
             uid = uid,
             nome = dados["nome"].orEmpty(),
             curso = dados["curso"].orEmpty(),
-            instituicao = dados["instituicao"].orEmpty(),
+            instituicao = dados["instituicao"].orEmpty().ifBlank { getString(R.string.instituicao_padrao) },
             email = emailFirebase,
-            papel = papel,
+            papel = papelInicial,
             onSuccess = {
                 consultarPerfil(uid)
             },
@@ -228,6 +243,111 @@ class LoginActivity : AppCompatActivity() {
                 mostrarErro("Erro ao salvar perfil: $erro")
             }
         )
+    }
+
+    private fun exibirDialogConcluirCadastro(
+        uid: String,
+        emailFirebase: String,
+        nomeSugerido: String
+    ) {
+        val densidade = resources.displayMetrics.density
+        val padHorizontal = (20 * densidade).toInt()
+        val padVertical = (12 * densidade).toInt()
+
+        val container = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(padHorizontal, padVertical, padHorizontal, padVertical)
+        }
+
+        val tvSubtitulo = TextView(this).apply {
+            text = getString(R.string.completar_cadastro_subtitle)
+            setPadding(0, 0, 0, (12 * densidade).toInt())
+        }
+        container.addView(tvSubtitulo)
+
+        val etNome = EditText(this).apply {
+            hint = getString(R.string.hint_nome)
+            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_WORDS
+            setText(nomeSugerido.trim())
+        }
+        container.addView(etNome)
+
+        val cursos = resources.getStringArray(R.array.cursos_senac)
+        val etCurso = AutoCompleteTextView(this).apply {
+            hint = getString(R.string.hint_curso)
+            threshold = 1
+            setAdapter(
+                ArrayAdapter(
+                    this@LoginActivity,
+                    android.R.layout.simple_list_item_1,
+                    cursos
+                )
+            )
+            setOnClickListener { showDropDown() }
+        }
+        container.addView(etCurso)
+
+        val etInstituicao = EditText(this).apply {
+            hint = getString(R.string.hint_instituicao)
+            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_CAP_WORDS
+            setText(getString(R.string.instituicao_padrao))
+        }
+        container.addView(etInstituicao)
+
+        val dialog = AlertDialog.Builder(this)
+            .setTitle(getString(R.string.completar_cadastro_title))
+            .setView(container)
+            .setCancelable(false)
+            .setPositiveButton(getString(R.string.action_salvar_perfil), null)
+            .setNegativeButton(getString(R.string.action_voltar)) { d, _ ->
+                FirebaseAuth.getInstance().signOut()
+                binding.btnEntrar.isEnabled = true
+                d.dismiss()
+            }
+            .create()
+
+        dialog.setOnShowListener {
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                val nome = etNome.text?.toString()?.trim().orEmpty()
+                val curso = etCurso.text?.toString()?.trim().orEmpty()
+                val instituicao = etInstituicao.text?.toString()?.trim()
+                    .orEmpty()
+                    .ifBlank { getString(R.string.instituicao_padrao) }
+
+                if (nome.isBlank() || curso.isBlank()) {
+                    Toast.makeText(
+                        this,
+                        getString(R.string.erro_campos_obrigatorios),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    return@setOnClickListener
+                }
+
+                dialog.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled = false
+                firestoreRepository.salvarPerfil(
+                    uid = uid,
+                    nome = nome,
+                    curso = curso,
+                    instituicao = instituicao,
+                    email = emailFirebase,
+                    papel = PapelUsuario.PASSAGEIRO,
+                    onSuccess = {
+                        dialog.dismiss()
+                        consultarPerfil(uid)
+                    },
+                    onError = { erro ->
+                        dialog.getButton(AlertDialog.BUTTON_POSITIVE).isEnabled = true
+                        Toast.makeText(
+                            this,
+                            "Erro ao salvar perfil: $erro",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+                )
+            }
+        }
+
+        dialog.show()
     }
 
     private fun sincronizarPerfilLocal(
@@ -263,6 +383,42 @@ class LoginActivity : AppCompatActivity() {
             return
         }
 
+        solicitacaoMotoristaRepository.consultarDetalhes(
+            onSuccess = { pedido ->
+                concluirSincronizacaoLocal(
+                    uid = uid,
+                    emailFirebase = emailFirebase,
+                    papel = papel,
+                    perfil = perfil,
+                    pedido = pedido,
+                    atualizarSolicitacao = true
+                )
+            },
+            onError = {
+                concluirSincronizacaoLocal(
+                    uid = uid,
+                    emailFirebase = emailFirebase,
+                    papel = papel,
+                    perfil = perfil,
+                    pedido = null,
+                    atualizarSolicitacao = false
+                )
+            }
+        )
+    }
+
+    private fun concluirSincronizacaoLocal(
+        uid: String,
+        emailFirebase: String,
+        papel: PapelUsuario,
+        perfil: Map<String, String>,
+        pedido: DadosSolicitacaoMotorista?,
+        atualizarSolicitacao: Boolean
+    ) {
+        val validado = perfil["condutorValidado"] == "true"
+        val cnhValidade = perfil["cnhValidade"]?.takeIf { it.isNotBlank() }
+        val cnhRevisao = if (pedido?.status == "RECUSADA") false else (perfil["cnhRevisaoNecessaria"] == "true")
+
         lifecycleScope.launch {
             try {
                 val idLocal = repository.sincronizarPerfil(
@@ -273,9 +429,26 @@ class LoginActivity : AppCompatActivity() {
                     papel = papel
                 )
 
+                if (pedido != null) {
+                    repository.sincronizarVeiculoLocal(
+                        usuarioId = idLocal,
+                        placa = pedido.placa,
+                        modelo = pedido.modelo,
+                        cor = pedido.cor,
+                        cnhAnexada = pedido.cnhPdfRecebido
+                    )
+                }
+
                 repository.sincronizarValidacaoMotorista(
                     usuarioId = idLocal,
-                    validado = perfil["condutorValidado"] == "true"
+                    validado = validado,
+                    cnhValidade = cnhValidade,
+                    cnhRevisaoNecessaria = cnhRevisao,
+                    status = perfil["status"],
+                    papelAtivo = perfil["papel"],
+                    solicitacaoStatus = pedido?.status,
+                    motivoRecusa = pedido?.motivoRecusa,
+                    atualizarSolicitacao = atualizarSolicitacao
                 )
 
                 if (FirebaseAuth.getInstance().currentUser?.uid != uid) {

@@ -1,13 +1,19 @@
 package com.example.hitchhike.data
 
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FieldValue
+import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
-class SolicitacaoCaronaFirestoreRepository {
+class SolicitacaoCaronaFirestoreRepository(
+    private val backend: CaronasBackendRepository = CaronasBackendRepository()
+) {
 
     private val db = FirebaseFirestore.getInstance()
     private val auth = FirebaseAuth.getInstance()
+    private val scope = CoroutineScope(Dispatchers.Main)
 
     fun solicitar(
         caronaId: String,
@@ -27,40 +33,31 @@ class SolicitacaoCaronaFirestoreRepository {
         }
 
         val caronaRef = db.collection("caronas").document(caronaId)
-
         val solicitacaoRef = db.collection("solicitacoes_caronas")
             .document("${caronaId}_${usuario.uid}")
 
         db.runTransaction { transaction ->
-
             val caronaDoc = transaction.get(caronaRef)
+            val pedidoExistente = transaction.get(solicitacaoRef)
 
+            val decisao = IntegridadeSolicitacaoCarona.validarNovaSolicitacao(
+                ContextoCaronaParaSolicitacao(
+                    caronaExiste = caronaDoc.exists(),
+                    motoristaUid = caronaDoc.getString("motoristaUid"),
+                    passageiroUid = usuario.uid,
+                    statusCarona = caronaDoc.getString("status"),
+                    vagasDisponiveis = caronaDoc.getLong("vagasDisponiveis") ?: 0L,
+                    saidaMillis = caronaDoc.getTimestamp("dataHoraSaida")?.toDate()?.time,
+                    agoraMillis = System.currentTimeMillis(),
+                    solicitacaoJaExiste = pedidoExistente.exists()
+                )
+            )
 
-            if (!caronaDoc.exists()) {
-                throw IllegalStateException("Carona não encontrada.")
+            if (decisao != DecisaoSolicitacaoCarona.PERMITIDA) {
+                throw IllegalStateException(IntegridadeSolicitacaoCarona.mensagemNovaSolicitacao(decisao))
             }
 
             val motoristaUid = caronaDoc.getString("motoristaUid")
-            val status = caronaDoc.getString("status")
-            val vagas = caronaDoc.getLong("vagasDisponiveis") ?: 0L
-            val horario = caronaDoc.getTimestamp("dataHoraSaida")
-
-            if (motoristaUid == usuario.uid) {
-                throw IllegalStateException(
-                    "Você não pode solicitar sua própria carona."
-                )
-            }
-
-            if (status != "ABERTA" ||
-                vagas <= 0 ||
-                horario == null ||
-                horario.toDate().time <= System.currentTimeMillis()
-            ) {
-                throw IllegalStateException(
-                    "Esta carona não está disponível."
-                )
-            }
-
 
             val dados = hashMapOf(
                 "id" to solicitacaoRef.id,
@@ -72,22 +69,18 @@ class SolicitacaoCaronaFirestoreRepository {
             )
 
             transaction.set(solicitacaoRef, dados)
-
             null
         }.addOnSuccessListener {
             onSuccess()
-        }
-            .addOnFailureListener { erro ->
-                onError(
-                    com.example.hitchhike.util.FirestoreMensagens.amigavel(
-                        erro,
-                        "Você já pediu esta carona ou ela não está mais disponível."
-                    )
+        }.addOnFailureListener { erro ->
+            onError(
+                com.example.hitchhike.util.FirestoreMensagens.amigavel(
+                    erro,
+                    "Você já pediu esta carona ou ela não está mais disponível."
                 )
-            }
-
+            )
+        }
     }
-
 
     fun listarPorCarona(
         caronaId: String,
@@ -131,137 +124,77 @@ class SolicitacaoCaronaFirestoreRepository {
             }
     }
 
-
     fun recusar(
         solicitacaoId: String,
         onSuccess: () -> Unit,
         onError: (String) -> Unit
     ) {
-        val usuario = auth.currentUser
+        val (caronaId, passageiroUid) = decomporSolicitacaoId(solicitacaoId) ?: run {
+            onError("Solicitação inválida.")
+            return
+        }
+        recusar(caronaId, passageiroUid, onSuccess, onError)
+    }
 
+    fun recusar(
+        caronaId: String,
+        passageiroUid: String,
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit
+    ) {
+        val usuario = auth.currentUser
         if (usuario == null || !usuario.isEmailVerified) {
             onError("Usuário não autenticado.")
             return
         }
-
-        val solicitacaoRef = db.collection("solicitacoes_caronas")
-            .document(solicitacaoId)
-
-        db.runTransaction { transaction ->
-            val documento = transaction.get(solicitacaoRef)
-
-            if (!documento.exists()) {
-                throw IllegalStateException("Solicitação não encontrada.")
-            }
-
-            if (documento.getString("motoristaUid") != usuario.uid) {
-                throw IllegalStateException("Você não é a motorista desta carona.")
-            }
-
-            if (documento.getString("status") != "PENDENTE") {
-                throw IllegalStateException("Esta solicitação já foi respondida.")
-            }
-
-            transaction.update(solicitacaoRef, "status", "RECUSADA")
-
-            null
-        }.addOnSuccessListener {
-            onSuccess()
-        }.addOnFailureListener { erro ->
-            onError(
-                erro.localizedMessage ?: "Erro ao recusar solicitação."
+        scope.launch {
+            backend.recusar(caronaId, passageiroUid).fold(
+                onSuccess = { onSuccess() },
+                onFailure = { erro ->
+                    onError(erro.message ?: "Erro ao recusar solicitação.")
+                }
             )
         }
     }
-
 
     fun aceitar(
         solicitacaoId: String,
         onSuccess: () -> Unit,
         onError: (String) -> Unit
     ) {
-        val usuario = auth.currentUser
+        val (caronaId, passageiroUid) = decomporSolicitacaoId(solicitacaoId) ?: run {
+            onError("Solicitação inválida.")
+            return
+        }
+        aceitar(caronaId, passageiroUid, onSuccess, onError)
+    }
 
+    fun aceitar(
+        caronaId: String,
+        passageiroUid: String,
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit
+    ) {
+        val usuario = auth.currentUser
         if (usuario == null || !usuario.isEmailVerified) {
             onError("Usuário não autenticado.")
             return
         }
-
-        val solicitacaoRef = db.collection("solicitacoes_caronas")
-            .document(solicitacaoId)
-
-        db.runTransaction { transaction ->
-
-            val pedido = transaction.get(solicitacaoRef)
-
-            if (!pedido.exists()) {
-                throw IllegalStateException("Solicitação não encontrada.")
-            }
-
-            if (pedido.getString("motoristaUid") != usuario.uid) {
-                throw IllegalStateException("Você não é a motorista desta carona.")
-            }
-
-            if (pedido.getString("status") != "PENDENTE") {
-                throw IllegalStateException("Esta solicitação já foi respondida.")
-            }
-
-            val caronaId = pedido.getString("caronaId")
-                ?: throw IllegalStateException("Carona inválida.")
-
-            val caronaRef = db.collection("caronas").document(caronaId)
-            val carona = transaction.get(caronaRef)
-
-            if (!carona.exists()) {
-                throw IllegalStateException("Carona não encontrada.")
-            }
-
-            if (carona.getString("motoristaUid") != usuario.uid ||
-                carona.getString("status") != "ABERTA"
-            ) {
-                throw IllegalStateException("Carona indisponível.")
-            }
-
-            val vagas = carona.getLong("vagasDisponiveis") ?: 0L
-
-            if (vagas <= 0L) {
-                throw IllegalStateException("Não há vagas disponíveis.")
-            }
-
-            val horario = carona.getTimestamp("dataHoraSaida")
-
-            if (horario == null ||
-                horario.toDate().time <= System.currentTimeMillis()
-            ) {
-                throw IllegalStateException("O horário da carona já passou.")
-            }
-
-
-            transaction.update(
-                caronaRef,
-                mapOf(
-                    "vagasDisponiveis" to vagas - 1,
-                    "ultimaSolicitacaoAceitaId" to solicitacaoId
-                )
-            )
-
-
-            transaction.update(
-                solicitacaoRef,
-                "status",
-                "ACEITA"
-            )
-
-            null
-        }.addOnSuccessListener {
-            onSuccess()
-        }.addOnFailureListener { erro ->
-            onError(
-                erro.localizedMessage ?: "Erro ao aceitar solicitação."
+        scope.launch {
+            backend.aceitar(caronaId, passageiroUid).fold(
+                onSuccess = { onSuccess() },
+                onFailure = { erro ->
+                    onError(erro.message ?: "Erro ao aceitar solicitação.")
+                }
             )
         }
     }
 
+    private fun decomporSolicitacaoId(solicitacaoId: String): Pair<String, String>? {
+        val idx = solicitacaoId.indexOf('_')
+        if (idx <= 0 || idx >= solicitacaoId.length - 1) return null
+        return solicitacaoId.substring(0, idx) to solicitacaoId.substring(idx + 1)
+    }
 
     fun listarMinhasSolicitacoes(
         onSuccess: (List<SolicitacaoCaronaFirestore>) -> Unit,
@@ -295,7 +228,6 @@ class SolicitacaoCaronaFirestoreRepository {
                 )
             }
     }
-
 
     fun buscarMinhaSolicitacao(
         caronaId: String,

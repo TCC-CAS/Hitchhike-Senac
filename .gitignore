@@ -26,3 +26,9 @@ local.properties
 # Assinatura Android
 *.jks
 *.keystore
+
+# Kotlin cache
+/.kotlin/
+
+# Kotlin cache
+/.kotlin/
