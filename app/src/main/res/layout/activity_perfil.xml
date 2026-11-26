@@ -180,6 +180,14 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
                         android:textColor="@color/hh_text_secondary" />
+
+                    <TextView
+                        android:id="@+id/tvViagensRealizadas"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:textColor="@color/hh_text_secondary"
+                        android:visibility="gone" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -219,6 +227,15 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
                         android:textColor="@color/hh_text_secondary" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnRenovarCnh"
+                        style="@style/Widget.Hitchhike.Button.Outlined"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:text="@string/action_renovar_cnh"
+                        android:textColor="@color/hh_green" />
                 </LinearLayout>
 
                 <com.google.android.material.button.MaterialButton

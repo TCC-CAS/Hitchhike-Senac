@@ -38,7 +38,8 @@ class PrivacidadeNomeTest {
     @Test
     fun pendenteERecusadaNaoRevelamNomeDepoisDaSaida() {
         val encerrada = encerrada("ABERTA", agora - 60_000L)
-        assertEquals("ENCERRADA", CaronaStatusExibicao.calcular("ABERTA", agora - 60_000L, 1, agora))
+        assertEquals("AGUARDANDO_INICIO", CaronaStatusExibicao.calcular("ABERTA", agora - 60_000L, 1, agora))
+        assertFalse("Viagem apenas com horário vencido não é considerada concluída", encerrada)
         listOf("PENDENTE", "RECUSADA").forEach { status ->
             assertEquals(
                 "Motorista verificado",
@@ -53,7 +54,7 @@ class PrivacidadeNomeTest {
 
     @Test
     fun historicoAceitoMostraPrimeiroNomeEInicial() {
-        val encerrada = encerrada("ABERTA", agora)
+        val encerrada = encerrada("CONCLUIDA", agora)
         assertEquals(
             "Isabella D.",
             texto(PrivacidadeNome.Papel.MOTORISTA, participante = true, status = "ACEITA", encerrada = encerrada, nome = "Isabella Duarte")
@@ -131,7 +132,8 @@ class PrivacidadeNomeTest {
     }
 
     private fun encerrada(status: String, saida: Long): Boolean {
-        return CaronaStatusExibicao.calcular(status, saida, 2, agora) == "ENCERRADA"
+        val calc = CaronaStatusExibicao.calcular(status, saida, 2, agora)
+        return calc == "CONCLUIDA" || calc == "ENCERRADA"
     }
 
     private fun texto(

@@ -1,4 +1,3 @@
-
 package com.example.hitchhike.data
 
 import com.google.firebase.auth.FirebaseAuth
@@ -36,8 +35,8 @@ class CaronaFirestoreRepository {
             return
         }
 
-
         val documento = db.collection("caronas").document()
+        val motoristaRef = db.collection("usuarios").document(usuario.uid)
 
         val dados = carona.copy(
             id = documento.id,
@@ -48,14 +47,32 @@ class CaronaFirestoreRepository {
             status = "ABERTA"
         )
 
-        documento.set(dados)
-            .addOnSuccessListener {
-                onSuccess(documento.id)
+        db.runTransaction { transaction ->
+            val perfil = transaction.get(motoristaRef)
+            if (!perfil.exists()) {
+                throw IllegalStateException("Perfil de motorista não encontrado.")
+            }
+            val elegibilidade = ElegibilidadeMotorista.avaliar(
+                status = perfil.getString("status"),
+                condutorValidado = perfil.getBoolean("condutorValidado") == true,
+                papelAtivo = perfil.getString("papelAtivo"),
+                cnhValidade = perfil.getString("cnhValidade"),
+                cnhRevisaoNecessaria = perfil.getBoolean("cnhRevisaoNecessaria") == true
+            )
+            if (!elegibilidade.apto) {
+                throw IllegalStateException(ElegibilidadeMotorista.mensagemBloqueio(elegibilidade.estado))
+            }
+            transaction.set(documento, CaronaFirestore.payloadCriacao(dados))
+            documento.id
+        }
+            .addOnSuccessListener { id ->
+                onSuccess(id)
             }
             .addOnFailureListener { erro ->
                 onError(erro.localizedMessage ?: "Erro ao publicar carona.")
             }
     }
+
     fun buscar(
         origem: String,
         destino: String,
@@ -90,6 +107,7 @@ class CaronaFirestoreRepository {
                 onError(erro.localizedMessage ?: "Erro ao buscar caronas.")
             }
     }
+
     fun buscarPorId(
         caronaId: String,
         onSuccess: (CaronaFirestore) -> Unit,

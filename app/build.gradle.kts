@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -17,6 +19,15 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // URL base do backend de pagamentos (sem segredos). Defina em local.properties:
+        // hitchhike.pagamentosBaseUrl=https://seu-backend
+        val props = Properties().apply {
+            val arq = rootProject.file("local.properties")
+            if (arq.exists()) arq.inputStream().use { load(it) }
+        }
+        val urlPagamentos = (props.getProperty("hitchhike.pagamentosBaseUrl") ?: "").trim()
+        buildConfigField("String", "PAGAMENTOS_BASE_URL", "\"$urlPagamentos\"")
     }
 
     buildTypes {
@@ -37,6 +48,7 @@ android {
     }
     buildFeatures {
         viewBinding = true
+        buildConfig = true
     }
 }
 
@@ -46,6 +58,7 @@ dependencies {
     implementation(libs.material)
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
+    implementation(libs.androidx.browser)
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

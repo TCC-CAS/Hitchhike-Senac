@@ -30,16 +30,85 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:text="@string/banner_motorista_bloqueado"
+            android:text="@string/cnh_instrucao_pdf"
             android:textColor="@color/hh_text_secondary" />
+
+        <LinearLayout
+            android:id="@+id/cardStatusCnh"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/bg_card_static"
+            android:orientation="vertical"
+            android:padding="@dimen/hh_card_padding">
+
+            <TextView
+                android:id="@+id/tvEstadoSolicitacaoTitulo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/cnh_status_carregando"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvEstadoSolicitacaoDetalhe"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:textColor="@color/hh_text_secondary" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnAtualizarStatusCnh"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:minHeight="@dimen/hh_touch_min"
+                android:text="@string/action_atualizar_status_cnh"
+                android:textColor="@color/hh_green" />
+        </LinearLayout>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnAnexarCnh"
+            style="@style/Widget.Hitchhike.Button.Outlined"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/action_selecionar_pdf_cnh"
+            android:textColor="@color/hh_green" />
+
+        <TextView
+            android:id="@+id/tvCnhStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:textColor="@color/hh_green"
+            android:visibility="gone" />
+
+        <ProgressBar
+            android:id="@+id/progressEnvioCnh"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:indeterminate="true"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/tvProgressoCnh"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="@string/cnh_enviando_progresso"
+            android:textColor="@color/hh_text_secondary"
+            android:visibility="gone" />
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/tilCnh"
             style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:hint="@string/hint_cnh"
+            android:layout_marginTop="16dp"
+            android:hint="@string/hint_cnh_opcional"
             app:boxCornerRadiusBottomEnd="16dp"
             app:boxCornerRadiusBottomStart="16dp"
             app:boxCornerRadiusTopEnd="16dp"
@@ -53,29 +122,12 @@
                 android:minHeight="56dp" />
         </com.google.android.material.textfield.TextInputLayout>
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnAnexarCnh"
-            style="@style/Widget.Hitchhike.Button.Outlined"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="@string/action_anexar_cnh"
-            android:textColor="@color/hh_green" />
-
-        <TextView
-            android:id="@+id/tvCnhStatus"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:textColor="@color/hh_green"
-            android:visibility="gone" />
-
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/tilPlaca"
             style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="12dp"
             android:hint="@string/hint_placa"
             app:boxCornerRadiusBottomEnd="16dp"
             app:boxCornerRadiusBottomStart="16dp"
@@ -135,6 +187,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
-            android:text="@string/action_salvar_condutor" />
+            android:text="@string/action_enviar_cnh_condutor" />
     </LinearLayout>
 </ScrollView>

@@ -1,46 +1,15 @@
 package com.example.hitchhike.data
 
 import android.content.Context
-import com.example.hitchhike.util.InstitutionalEmailValidator
-import com.example.hitchhike.util.PasswordHasher
 
 class UsuarioRepository(context: Context) {
     private val dao = AppDatabase.get(context).usuarioDao()
 
-    suspend fun cadastrar(
-        nome: String,
-        curso: String,
-        instituicao: String,
-        email: String,
-        senha: String,
-        papelInicial: PapelUsuario
-    ): Result<Long> {
-        val emailNorm = email.trim().lowercase()
-        if (!InstitutionalEmailValidator.isValid(emailNorm)) {
-            return Result.failure(IllegalArgumentException("email_institucional"))
-        }
-        if (dao.buscarPorEmail(emailNorm) != null) {
-            return Result.failure(IllegalStateException("email_existente"))
-        }
-        val id = dao.inserir(
-            UsuarioEntity(
-                nome = nome.trim(),
-                curso = curso.trim(),
-                instituicao = instituicao.trim(),
-                email = emailNorm,
-                senhaHash = PasswordHasher.hash(senha),
-                papelAtivo = papelInicial.name
-            )
-        )
-        return Result.success(id)
-    }
-
-    suspend fun autenticar(email: String, senha: String): UsuarioEntity? {
-        val usuario = dao.buscarPorEmail(email.trim().lowercase()) ?: return null
-        return if (usuario.senhaHash == PasswordHasher.hash(senha)) usuario else null
-    }
-
-
+    /**
+     * Sincroniza os dados públicos/cadastrais do perfil vindos do Firestore com o Room local.
+     * Nunca grava senhas ou hashes locais (as senhas são gerenciadas exclusivamente pelo Firebase Authentication)
+     * e preserva os campos administrativos existentes até a chamada de sincronizarValidacaoMotorista.
+     */
     suspend fun sincronizarPerfil(
         nome: String,
         curso: String,
@@ -58,6 +27,7 @@ class UsuarioRepository(context: Context) {
                     nome = nome.trim(),
                     curso = curso.trim(),
                     instituicao = instituicao.trim(),
+                    senhaHash = "",
                     papelAtivo = papel.name
                 )
             )
@@ -82,15 +52,9 @@ class UsuarioRepository(context: Context) {
     suspend fun buscarPorEmail(email: String): UsuarioEntity? =
         dao.buscarPorEmail(email.trim().lowercase())
 
-    suspend fun atualizarSenha(usuarioId: Long, novaSenha: String) {
-        val usuario = dao.buscarPorId(usuarioId) ?: return
-        dao.atualizar(usuario.copy(senhaHash = PasswordHasher.hash(novaSenha)))
-    }
-
     suspend fun alternarPapel(usuario: UsuarioEntity, novoPapel: PapelUsuario) {
         dao.atualizar(usuario.copy(papelAtivo = novoPapel.name))
     }
-
 
     suspend fun salvarCondutor(
         usuario: UsuarioEntity,
@@ -112,19 +76,39 @@ class UsuarioRepository(context: Context) {
 
         dao.atualizar(
             usuario.copy(
-                cnhNumero = cnh.trim(),
+                cnhNumero = cnh.trim().ifBlank { usuario.cnhNumero },
                 cnhAnexada = cnhAnexada,
                 veiculoPlaca = placaNorm,
                 veiculoModelo = modelo.trim(),
                 veiculoCor = cor.trim(),
                 condutorValidado = false,
-                papelAtivo = PapelUsuario.MOTORISTA.name
+                cnhRevisaoNecessaria = true,
+                solicitacaoMotoristaStatus = "PENDENTE",
+                motivoRecusaMotorista = null,
+                papelAtivo = PapelUsuario.PASSAGEIRO.name
             )
         )
 
         return Result.success(Unit)
     }
 
+    suspend fun sincronizarVeiculoLocal(
+        usuarioId: Long,
+        placa: String?,
+        modelo: String?,
+        cor: String?,
+        cnhAnexada: Boolean
+    ) {
+        val usuario = dao.buscarPorId(usuarioId) ?: return
+        dao.atualizar(
+            usuario.copy(
+                veiculoPlaca = placa?.takeIf { it.isNotBlank() } ?: usuario.veiculoPlaca,
+                veiculoModelo = modelo?.takeIf { it.isNotBlank() } ?: usuario.veiculoModelo,
+                veiculoCor = cor?.takeIf { it.isNotBlank() } ?: usuario.veiculoCor,
+                cnhAnexada = cnhAnexada
+            )
+        )
+    }
 
     @Deprecated("Modelo de assinaturas descontinuado em favor do uso gratuito com taxa por carona.")
     suspend fun atualizarPlano(usuario: UsuarioEntity, plano: PlanoAssinatura) {
@@ -133,13 +117,41 @@ class UsuarioRepository(context: Context) {
 
     suspend fun sincronizarValidacaoMotorista(
         usuarioId: Long,
-        validado: Boolean
+        validado: Boolean,
+        cnhValidade: String? = null,
+        cnhRevisaoNecessaria: Boolean? = null,
+        status: String? = null,
+        papelAtivo: String? = null,
+        solicitacaoStatus: String? = null,
+        motivoRecusa: String? = null,
+        atualizarSolicitacao: Boolean = false
     ) {
         val usuario = dao.buscarPorId(usuarioId) ?: return
+        val novoPapel = papelAtivo?.takeIf {
+            it == PapelUsuario.MOTORISTA.name || it == PapelUsuario.PASSAGEIRO.name
+        } ?: usuario.papelAtivo
+        val novoStatusSol = if (atualizarSolicitacao) {
+            ElegibilidadeMotorista.normalizarStatusSolicitacao(solicitacaoStatus)
+        } else {
+            ElegibilidadeMotorista.normalizarStatusSolicitacao(solicitacaoStatus) ?: usuario.solicitacaoMotoristaStatus
+        }
+        val novoMotivo = if (novoStatusSol == "RECUSADA") {
+            if (atualizarSolicitacao) motivoRecusa?.takeIf { it.isNotBlank() }
+            else motivoRecusa?.takeIf { it.isNotBlank() } ?: usuario.motivoRecusaMotorista
+        } else {
+            null
+        }
 
         dao.atualizar(
             usuario.copy(
-                condutorValidado = validado
+                senhaHash = "",
+                condutorValidado = validado,
+                cnhValidade = cnhValidade?.takeIf { it.isNotBlank() },
+                cnhRevisaoNecessaria = cnhRevisaoNecessaria ?: usuario.cnhRevisaoNecessaria,
+                status = status?.takeIf { it.isNotBlank() } ?: usuario.status,
+                papelAtivo = novoPapel,
+                solicitacaoMotoristaStatus = novoStatusSol,
+                motivoRecusaMotorista = novoMotivo
             )
         )
     }

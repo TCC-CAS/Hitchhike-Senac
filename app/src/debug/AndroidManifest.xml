@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Somente debug: permite http://10.0.2.2:3000 (emulador) para o backend local. -->
+    <application android:usesCleartextTraffic="true" />
+</manifest>

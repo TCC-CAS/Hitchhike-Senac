@@ -9,30 +9,29 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.example.hitchhike.R
 import com.example.hitchhike.data.AvaliacaoFirestoreRepository
 import com.example.hitchhike.data.CaronaFirestore
 import com.example.hitchhike.data.CaronaFirestoreRepository
 import com.example.hitchhike.data.CaronaStatusExibicao
-import com.example.hitchhike.data.NomeAbreviadoFirestoreRepository
+import com.example.hitchhike.data.CaronasBackendRepository
 import com.example.hitchhike.data.PrivacidadeNome
-import com.example.hitchhike.data.StatusCarona
 import com.example.hitchhike.data.SolicitacaoCaronaFirestore
 import com.example.hitchhike.data.SolicitacaoCaronaFirestoreRepository
+import com.example.hitchhike.data.StatusCarona
 import com.example.hitchhike.databinding.ActivityMinhasCaronasBinding
 import com.example.hitchhike.util.DateTimeFormat
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.tabs.TabLayout
-import com.google.firebase.auth.FirebaseAuth
 import java.util.concurrent.atomic.AtomicInteger
 
 class MinhasCaronasActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMinhasCaronasBinding
     private val caronaFirestoreRepository = CaronaFirestoreRepository()
-    private val solicitacaoFirestoreRepository =
-        SolicitacaoCaronaFirestoreRepository()
-    private val avaliacaoRepository = AvaliacaoFirestoreRepository()
-    private val nomesAbreviados = NomeAbreviadoFirestoreRepository()
+    private val solicitacaoFirestoreRepository = SolicitacaoCaronaFirestoreRepository()
+    private val caronasBackendRepository = CaronasBackendRepository()
+    private val avaliacaoRepository = AvaliacaoFirestoreRepository(caronasBackendRepository)
     private var carregamentoId = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -188,11 +187,11 @@ class MinhasCaronasActivity : AppCompatActivity() {
         val agora = System.currentTimeMillis()
 
         val oferecidasProximas = caronas
-            .filter { it.saidaMillis() > agora }
+            .filter { !CaronaStatusExibicao.estadoFinal(CaronaStatusExibicao.calcular(it, agora)) }
             .sortedBy { it.saidaMillis() }
 
         val oferecidasHistorico = caronas
-            .filter { it.saidaMillis() <= agora }
+            .filter { CaronaStatusExibicao.estadoFinal(CaronaStatusExibicao.calcular(it, agora)) }
             .sortedByDescending { it.saidaMillis() }
 
         val pedidosProximas = pedidos
@@ -258,7 +257,8 @@ class MinhasCaronasActivity : AppCompatActivity() {
     ) {
         val item = inflarCard(container)
         val saida = carona.saidaMillis()
-        val etiqueta = CaronaStatusExibicao.calcular(carona)
+        val statusExibicao = CaronaStatusExibicao.calcular(carona)
+        val etiqueta = CaronasUiHelper.rotuloStatusCarona(this, statusExibicao)
 
         preencherCard(
             item = item,
@@ -274,13 +274,24 @@ class MinhasCaronasActivity : AppCompatActivity() {
             destino = carona.destino
         )
 
-        nomesAbreviados.garantirProprio(carona.id)
         item.setOnClickListener { abrirDetalhe(carona.id) }
-        if (historico && carona.saidaMillis() <= System.currentTimeMillis()) {
+
+        // Só viagens efetivamente CONCLUIDAS (nunca CANCELADA, EXPIRADA ou registros antigos ENCERRADA)
+        // exibem o botão de participantes elegíveis / avaliação.
+        if (historico && statusExibicao == StatusCarona.CONCLUIDA.name) {
             val avaliar = item.findViewById<MaterialButton>(R.id.btnAvaliar)
             avaliar.visibility = View.VISIBLE
-            avaliar.text = getString(R.string.action_avaliar_passageiros)
-            avaliar.setOnClickListener { abrirDetalhe(carona.id) }
+            avaliar.text = getString(R.string.action_ver_participantes)
+            avaliar.setOnClickListener {
+                ParticipantesDialog.abrir(
+                    context = this,
+                    scope = lifecycleScope,
+                    backend = caronasBackendRepository,
+                    avaliacaoRepository = avaliacaoRepository,
+                    caronaId = carona.id,
+                    aoAtualizar = { carregar() }
+                )
+            }
         }
         container.addView(item)
     }
@@ -306,60 +317,58 @@ class MinhasCaronasActivity : AppCompatActivity() {
             getString(R.string.minhas_pedido_sem_detalhe)
         }
 
-        val encerrada = carona?.let {
-            CaronaStatusExibicao.calcular(it) == StatusCarona.ENCERRADA.name
-        } == true
+        val statusCarona = carona?.let { CaronaStatusExibicao.calcular(it) }
+        val concluidaEConfirmada = statusCarona == StatusCarona.CONCLUIDA.name &&
+            pedido.status == "ACEITA" &&
+            pedido.participacaoConfirmadaEm != null &&
+            pedido.conclusaoConfirmadaEm != null
+
+        val aguardandoConfirmacao = statusCarona == StatusCarona.CONCLUIDA.name &&
+            pedido.status == "ACEITA" &&
+            !concluidaEConfirmada
+
+        val subtituloBase = if (aguardandoConfirmacao) {
+            "${PrivacidadeNome.rotuloGenerico(PrivacidadeNome.Papel.MOTORISTA)} · ${getString(R.string.minhas_aguardando_confirmacao)}"
+        } else {
+            "${PrivacidadeNome.rotuloGenerico(PrivacidadeNome.Papel.MOTORISTA)} · ${getString(R.string.minhas_pedido_detalhe)}"
+        }
+
+        val etiquetaExibida = if (statusCarona == StatusCarona.CONCLUIDA.name && pedido.status == "ACEITA") {
+            CaronasUiHelper.rotuloStatusCarona(this, StatusCarona.CONCLUIDA.name)
+        } else if (statusCarona == StatusCarona.EXPIRADA.name && pedido.status != "RECUSADA") {
+            CaronasUiHelper.rotuloStatusCarona(this, StatusCarona.EXPIRADA.name)
+        } else {
+            etiquetaPedido(pedido.status)
+        }
+
         preencherCard(
             item = item,
             trajeto = trajeto,
             horario = horario,
-            detalhe = "${
-                PrivacidadeNome.texto(
-                    PrivacidadeNome.decidir(
-                        papel = PrivacidadeNome.Papel.MOTORISTA,
-                        participante = true,
-                        statusSolicitacao = pedido.status,
-                        encerrada = encerrada,
-                        nomeCompleto = null
-                    )
-                )
-            } · ${getString(R.string.minhas_pedido_detalhe)}",
-            etiqueta = etiquetaPedido(pedido.status),
+            detalhe = subtituloBase,
+            etiqueta = etiquetaExibida,
             origem = carona?.origem.orEmpty(),
             destino = carona?.destino.orEmpty()
         )
 
-        val detalhe = item.findViewById<TextView>(R.id.tvDetalhe)
-        nomesAbreviados.exibir(
-            caronaId = pedido.caronaId,
-            alvoUid = carona?.motoristaUid.orEmpty(),
-            papel = PrivacidadeNome.Papel.MOTORISTA,
-            participante = true,
-            statusSolicitacao = pedido.status,
-            encerrada = encerrada,
-            gravarProprio = true,
-            onTexto = { identidade ->
-                detalhe.text = "$identidade · ${getString(R.string.minhas_pedido_detalhe)}"
-            }
-        )
-
         if (carona != null) {
             item.setOnClickListener { abrirDetalhe(carona.id) }
-            val avaliadorUid = FirebaseAuth.getInstance().currentUser?.uid
-            if (historico && avaliadorUid != null && pedido.status == "ACEITA") {
-                AvaliacaoDialog.vincular(
-                    context = this,
-                    repositorio = avaliacaoRepository,
-                    botao = item.findViewById(R.id.btnAvaliar),
-                    enviada = item.findViewById(R.id.tvAvaliacaoEnviada),
-                    caronaId = carona.id,
-                    avaliadoUid = carona.motoristaUid,
-                    motoristaUid = carona.motoristaUid,
-                    passageiroUid = avaliadorUid,
-                    avaliadorUid = avaliadorUid,
-                    statusSolicitacao = pedido.status,
-                    saidaMillis = carona.saidaMillis()
-                )
+
+            // Somente para participante elegível (ACEITA + participação e conclusão confirmadas em carona CONCLUIDA)
+            if (historico && concluidaEConfirmada) {
+                val avaliar = item.findViewById<MaterialButton>(R.id.btnAvaliar)
+                avaliar.visibility = View.VISIBLE
+                avaliar.text = getString(R.string.action_ver_participantes)
+                avaliar.setOnClickListener {
+                    ParticipantesDialog.abrir(
+                        context = this,
+                        scope = lifecycleScope,
+                        backend = caronasBackendRepository,
+                        avaliacaoRepository = avaliacaoRepository,
+                        caronaId = carona.id,
+                        aoAtualizar = { carregar() }
+                    )
+                }
             }
         }
 
@@ -426,12 +435,16 @@ class MinhasCaronasActivity : AppCompatActivity() {
         if (pedido.status == "RECUSADA" || pedido.status == "CANCELADA") {
             return false
         }
-
-        val saida = carona?.saidaMillis() ?: return pedido.status == "PENDENTE" ||
-                pedido.status == "ACEITA"
-
-        return (pedido.status == "PENDENTE" || pedido.status == "ACEITA") &&
-                saida > agora
+        val c = carona ?: return pedido.status == "PENDENTE" || pedido.status == "ACEITA"
+        val statusExibicao = CaronaStatusExibicao.calcular(c, agora)
+        if (statusExibicao == StatusCarona.CONCLUIDA.name &&
+            pedido.status == "ACEITA" &&
+            (pedido.participacaoConfirmadaEm == null || pedido.conclusaoConfirmadaEm == null)
+        ) {
+            // Viagem recém-concluída pelo motorista que ainda aguarda confirmação do passageiro permanece visível em Próximas
+            return true
+        }
+        return !CaronaStatusExibicao.estadoFinal(statusExibicao)
     }
 
     private fun PedidoComCarona.ordenacaoMillis(): Long {

@@ -44,6 +44,23 @@ object PrivacidadeNome {
         }
     }
 
+    /** Rótulo genérico para exibição antes do aceite e durante a viagem. */
+    fun rotuloGenerico(papel: Papel): String =
+        if (papel == Papel.MOTORISTA) "Motorista" else "Passageiro"
+
+    /**
+     * Formata o nome de exibição apenas para participantes elegíveis de viagem CONCLUIDA
+     * com participação e conclusão confirmadas.
+     */
+    fun nomeParticipanteConfirmado(
+        papel: Papel,
+        concluidaEConfirmada: Boolean,
+        nomeOuAbreviado: String?
+    ): String {
+        if (!concluidaEConfirmada) return rotuloGenerico(papel)
+        return abreviar(nomeOuAbreviado) ?: rotuloGenerico(papel)
+    }
+
     fun abreviar(nomeCompleto: String?): String? {
         val nome = nomeCompleto
             ?.trim()

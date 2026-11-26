@@ -73,4 +73,12 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="2dp"
         android:textColor="@color/hh_text_secondary" />
+
+    <TextView
+        android:id="@+id/tvReputacaoMotorista"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:textColor="@color/hh_text_secondary"
+        android:visibility="gone" />
 </LinearLayout>

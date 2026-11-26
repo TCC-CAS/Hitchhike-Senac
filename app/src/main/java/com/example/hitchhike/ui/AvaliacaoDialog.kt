@@ -178,10 +178,15 @@ object AvaliacaoDialog {
                     caronaId = caronaId,
                     avaliadoUid = avaliadoUid,
                     nota = nota,
-                    onSuccess = {
+                    onSuccess = { revelada ->
                         enviando = false
                         enviada = true
-                        Toast.makeText(context, R.string.avaliacao_sucesso, Toast.LENGTH_SHORT).show()
+                        val msgRes = if (revelada) {
+                            R.string.avaliacao_sucesso_revelada
+                        } else {
+                            R.string.avaliacao_sucesso_oculta
+                        }
+                        Toast.makeText(context, msgRes, Toast.LENGTH_LONG).show()
                         dialog.dismiss()
                         aoEnviar()
                     },
