@@ -1,0 +1,214 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // E-mail institucional verificado nos 3 domínios do Senac (consistente com Android e Backend).
+    function emailInstitucionalVerificado() {
+      return request.auth != null
+        && request.auth.token.email_verified == true
+        && request.auth.token.email is string
+        && request.auth.token.email.lower().matches('^[^@\\s]+@(senacsp\\.edu\\.br|sp\\.senac\\.br|senac\\.br)$');
+    }
+
+    // Verifica no próprio servidor do Firestore se o motorista está ativo, validado,
+    // sem revisão pendente e com CNH vigente no instante da operação (request.time),
+    // impedindo que cache local ou estado offline contornem a autorização.
+    function motoristaApto(uid) {
+      let perfil = get(/databases/$(database)/documents/usuarios/$(uid)).data;
+      return perfil.status == 'ATIVO'
+        && perfil.condutorValidado == true
+        && perfil.papelAtivo == 'MOTORISTA'
+        && perfil.get('cnhRevisaoNecessaria', false) == false
+        && perfil.get('cnhValidadeFimMs', 0) is int
+        && perfil.get('cnhValidadeFimMs', 0) >= request.time.toMillis();
+    }
+
+    // 1. Coleções estritamente administrativas / servidor: NENHUM cliente mobile pode ler ou gravar.
+    // O acesso ocorre exclusivamente pelo backend via Firebase Admin SDK.
+    match /cnh_admin/{uid} {
+      allow read, write: if false;
+    }
+
+    match /cnh_eventos/{eventoId} {
+      allow read, write: if false;
+    }
+
+    match /pagamentos/{pagamentoId} {
+      allow read, write: if false;
+    }
+
+    match /motoristas_mp/{uid} {
+      allow read, write: if false;
+    }
+
+    // 2. Perfis de usuários: proteção dos dados pessoais (nome completo, e-mail, curso) e
+    // dos campos administrativos de CNH, status e aprovação.
+    // Somente o próprio usuário lê seu perfil completo; terceiros consultam apenas projeções
+    // mínimas de reputação/elegibilidade via backend autenticado.
+    match /usuarios/{uid} {
+      allow read: if emailInstitucionalVerificado() && request.auth.uid == uid;
+
+      allow create: if emailInstitucionalVerificado()
+        && request.auth.uid == uid
+        && request.resource.data.email is string
+        && request.resource.data.email.lower() == request.auth.token.email.lower()
+        && request.resource.data.nome is string
+        && request.resource.data.nome.size() >= 2
+        && request.resource.data.curso is string
+        && request.resource.data.instituicao is string
+        && request.resource.data.papelAtivo == 'PASSAGEIRO'
+        && request.resource.data.status == 'ATIVO'
+        && request.resource.data.condutorValidado == false
+        && !('cnhValidade' in request.resource.data)
+        && !('cnhValidadeFimMs' in request.resource.data)
+        && !('cnhRevisaoNecessaria' in request.resource.data);
+
+      allow update: if emailInstitucionalVerificado()
+        && request.auth.uid == uid
+        && !request.resource.data.diff(resource.data).affectedKeys()
+            .hasAny(['condutorValidado', 'status', 'cnhValidade', 'cnhValidadeFimMs', 'cnhRevisaoNecessaria', 'email'])
+        && (
+          request.resource.data.papelAtivo == 'PASSAGEIRO'
+          || (
+            request.resource.data.papelAtivo == 'MOTORISTA'
+            && resource.data.status == 'ATIVO'
+            && resource.data.condutorValidado == true
+            && resource.data.get('cnhRevisaoNecessaria', false) == false
+            && resource.data.get('cnhValidadeFimMs', 0) is int
+            && resource.data.get('cnhValidadeFimMs', 0) >= request.time.toMillis()
+          )
+        );
+
+      allow delete: if false;
+    }
+
+    // 3. Solicitações de motoristas (contém placa, modelo e cor do veículo):
+    // leitura apenas do próprio motorista titular; passageiros aceitos recebem o veículo
+    // exclusivamente pelo endpoint autenticado /api/caronas/{id}/situacao do backend.
+    match /solicitacoes_motoristas/{uid} {
+      allow read: if emailInstitucionalVerificado() && request.auth.uid == uid;
+      allow write: if false;
+    }
+
+    // 4. Caronas: publicação exige motorista aprovado e com CNH vigente.
+    // Atualização vincula atomicamente (via getAfter) o decremento de 1 vaga à transição
+    // PENDENTE -> ACEITA da solicitação determinística ultimaSolicitacaoAceitaId, impedindo
+    // decrementos arbitrários ou aceites sem decremento correspondente por clientes modificados.
+    // Transições de ciclo de vida (EM_ANDAMENTO, CONCLUIDA, CANCELADA com verificação financeira, EXPIRADA)
+    // ocorrem via backend Admin SDK.
+    match /caronas/{caronaId} {
+      allow read: if emailInstitucionalVerificado();
+
+      allow create: if emailInstitucionalVerificado()
+        && request.resource.data.keys().hasOnly([
+          'id', 'motoristaUid', 'origem', 'destino', 'dataHoraSaida',
+          'vagasTotais', 'vagasDisponiveis', 'valor', 'status', 'paradas'
+        ])
+        && request.resource.data.id == caronaId
+        && request.resource.data.motoristaUid == request.auth.uid
+        && request.resource.data.status == 'ABERTA'
+        && request.resource.data.origem is string
+        && request.resource.data.origem.size() >= 1
+        && request.resource.data.origem.size() <= 150
+        && request.resource.data.destino is string
+        && request.resource.data.destino.size() >= 1
+        && request.resource.data.destino.size() <= 150
+        && request.resource.data.vagasTotais is int
+        && request.resource.data.vagasTotais >= 1
+        && request.resource.data.vagasTotais <= 4
+        && request.resource.data.vagasDisponiveis == request.resource.data.vagasTotais
+        && request.resource.data.valor is number
+        && request.resource.data.valor >= 0
+        && request.resource.data.dataHoraSaida is timestamp
+        && request.resource.data.dataHoraSaida > request.time
+        && motoristaApto(request.auth.uid);
+
+      allow update: if emailInstitucionalVerificado()
+        && resource.data.motoristaUid == request.auth.uid
+        && request.resource.data.motoristaUid == resource.data.motoristaUid
+        && motoristaApto(request.auth.uid)
+        && resource.data.status == 'ABERTA'
+        && resource.data.vagasDisponiveis >= 1
+        && resource.data.dataHoraSaida > request.time
+        && request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['vagasDisponiveis', 'status', 'ultimaSolicitacaoAceitaId'])
+        && request.resource.data.ultimaSolicitacaoAceitaId is string
+        && request.resource.data.vagasDisponiveis == resource.data.vagasDisponiveis - 1
+        && (
+          (request.resource.data.vagasDisponiveis > 0 && request.resource.data.status == 'ABERTA')
+          || (request.resource.data.vagasDisponiveis == 0 && request.resource.data.status == 'LOTADA')
+        )
+        && exists(/databases/$(database)/documents/solicitacoes_caronas/$(request.resource.data.ultimaSolicitacaoAceitaId))
+        && get(/databases/$(database)/documents/solicitacoes_caronas/$(request.resource.data.ultimaSolicitacaoAceitaId)).data.caronaId == caronaId
+        && get(/databases/$(database)/documents/solicitacoes_caronas/$(request.resource.data.ultimaSolicitacaoAceitaId)).data.motoristaUid == request.auth.uid
+        && get(/databases/$(database)/documents/solicitacoes_caronas/$(request.resource.data.ultimaSolicitacaoAceitaId)).data.status == 'PENDENTE'
+        && getAfter(/databases/$(database)/documents/solicitacoes_caronas/$(request.resource.data.ultimaSolicitacaoAceitaId)).data.status == 'ACEITA';
+
+      allow delete: if false;
+    }
+
+    // 5. Solicitações de caronas:
+    // - Leitura restrita aos participantes (passageiro solicitante ou motorista da carona);
+    // - Criação com ID determinístico {caronaId}_{passageiroUid}, bloqueando duplicidade (!exists),
+    //   autosolicitação e solicitações em caronas lotadas, canceladas, iniciadas, concluídas ou vencidas;
+    // - Atualização: o aceite exige vínculo atômico via getAfter() com o decremento de 1 vaga em caronas/{caronaId}.
+    match /solicitacoes_caronas/{solicitacaoId} {
+      allow read: if emailInstitucionalVerificado()
+        && (resource == null
+            || resource.data.passageiroUid == request.auth.uid
+            || resource.data.motoristaUid == request.auth.uid);
+
+      allow create: if emailInstitucionalVerificado()
+        && request.resource.data.keys().hasOnly([
+          'id', 'caronaId', 'motoristaUid', 'passageiroUid', 'status', 'criadoEm'
+        ])
+        && request.resource.data.id == solicitacaoId
+        && request.resource.data.caronaId is string
+        && solicitacaoId == request.resource.data.caronaId + '_' + request.auth.uid
+        && !exists(/databases/$(database)/documents/solicitacoes_caronas/$(solicitacaoId))
+        && request.resource.data.passageiroUid == request.auth.uid
+        && request.resource.data.motoristaUid != request.auth.uid
+        && request.resource.data.status == 'PENDENTE'
+        && exists(/databases/$(database)/documents/caronas/$(request.resource.data.caronaId))
+        && get(/databases/$(database)/documents/caronas/$(request.resource.data.caronaId)).data.motoristaUid == request.resource.data.motoristaUid
+        && get(/databases/$(database)/documents/caronas/$(request.resource.data.caronaId)).data.status == 'ABERTA'
+        && get(/databases/$(database)/documents/caronas/$(request.resource.data.caronaId)).data.vagasDisponiveis >= 1
+        && get(/databases/$(database)/documents/caronas/$(request.resource.data.caronaId)).data.dataHoraSaida > request.time;
+
+      allow update: if emailInstitucionalVerificado()
+        && resource.data.motoristaUid == request.auth.uid
+        && resource.data.status == 'PENDENTE'
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
+        && (
+          request.resource.data.status == 'RECUSADA'
+          || (
+            request.resource.data.status == 'ACEITA'
+            && motoristaApto(request.auth.uid)
+            && get(/databases/$(database)/documents/caronas/$(resource.data.caronaId)).data.motoristaUid == request.auth.uid
+            && get(/databases/$(database)/documents/caronas/$(resource.data.caronaId)).data.status == 'ABERTA'
+            && get(/databases/$(database)/documents/caronas/$(resource.data.caronaId)).data.vagasDisponiveis >= 1
+            && get(/databases/$(database)/documents/caronas/$(resource.data.caronaId)).data.dataHoraSaida > request.time
+            && getAfter(/databases/$(database)/documents/caronas/$(resource.data.caronaId)).data.vagasDisponiveis
+                == get(/databases/$(database)/documents/caronas/$(resource.data.caronaId)).data.vagasDisponiveis - 1
+            && getAfter(/databases/$(database)/documents/caronas/$(resource.data.caronaId)).data.ultimaSolicitacaoAceitaId == solicitacaoId
+          )
+        );
+
+      allow delete: if false;
+    }
+
+    // 6. Nomes abreviados e avaliações:
+    // Nenhum cliente mobile pode ler ou gravar diretamente nomes_abreviados ou avaliacoes.
+    // - Nomes abreviados ("Pedro A.") são revelados exclusivamente pelo backend (/api/caronas/{id}/participantes)
+    //   somente para participantes elegíveis após conclusão e confirmação válidas da viagem.
+    // - Avaliações às cegas são registradas e agregadas exclusivamente pelo backend (/api/avaliacoes e /api/reputacao/*),
+    //   impedindo acesso antecipado às notas individuais ou manipulação de média.
+    match /nomes_abreviados/{docId} {
+      allow read, write: if false;
+    }
+
+    match /avaliacoes/{avaliacaoId} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -5,6 +5,13 @@ import { sugerirCnh } from './cnh.js';
 import { interpretarRegioes } from './cnhRegioes.js';
 let worker;
 try {
+ if(workerData.modo==='validar'){
+  // Envio pelo app: só valida estrutura (uma página, não protegido) e QR. Não inicia o Tesseract.
+  const {renderizarPdf,temQrLegivel}=await import('./pdfCnh.js');
+  const {canvas}=await renderizarPdf(workerData.buffer);
+  if(!temQrLegivel(canvas))throw Error('QR Code não identificado ou ilegível. Envie o PDF original completo da CNH com o QR Code legível.');
+  parentPort.postMessage({validado:true,qrDetectado:true});
+ }else{
  worker=await createWorker('por',1,{langPath:por.langPath,gzip:true,cacheMethod:'none',errorHandler:()=>{}});
  if(workerData.pdf){
   const {renderizarPdf,recortar,ampliarParaOcr,temQrLegivel}=await import('./pdfCnh.js');
@@ -22,4 +29,5 @@ try {
    parentPort.postMessage({...interpretarRegioes(resultados),qrDetectado:true});
   }else{const {data}=await worker.recognize(canvas.toBuffer('image/png'));parentPort.postMessage({...sugerirCnh(data.text,data.confidence),metodo:'pdf_pagina',qrDetectado:true,mensagem:'PDF sem layout reconhecido. '+sugerirCnh(data.text,data.confidence).mensagem});}
  }else{const {data}=await worker.recognize(Buffer.from(workerData.buffer));parentPort.postMessage({...sugerirCnh(data.text,data.confidence),metodo:'imagem'});}
+ }
 }catch(e){parentPort.postMessage({erro:true,mensagem:e.name==='PasswordException'?'PDF protegido por senha. Use uma cópia sem senha para a leitura.':e.message==='Envie o PDF da CNH com uma página.'||e.message.startsWith('QR Code não identificado')?e.message:'Não foi possível ler o arquivo. Verifique o PDF ou preencha manualmente.'});}finally{if(worker)await worker.terminate();}

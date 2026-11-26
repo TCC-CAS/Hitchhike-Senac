@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { cert, getApps, initializeApp } from 'firebase-admin/app';
 import { FieldPath, getFirestore } from 'firebase-admin/firestore';
-import { avaliarCnh } from './cnh.js';
+import { avaliarRegistroCnh, conferenciaVinculada, fimDoDiaSP, identidadeDivergenteNaoResolvida } from './cnh.js';
 
 const PROJETO = 'hitchhike-9568f';
 const CAMPOS_SOLICITACAO = ['placa', 'modelo', 'cor', 'status'];
@@ -229,6 +229,8 @@ export async function listarCaronas(agoraMillis = Date.now()) {
 }
 
 const ERROS_DECISAO = {
+  cnh_documento_divergente: [409, 'A conferência registrada não corresponde ao PDF atual do motorista. Reabra a conferência e analise o documento enviado.'],
+  cnh_identidade_divergente: [409, 'Há divergência de identidade não resolvida entre o documento e o cadastro do usuário. Confira e resolva a divergência antes de aprovar.'],
   cnh_pendente: [409, 'Confira a CNH e o QR no Vio, com categoria compatível e validade vigente, antes de aprovar.'],
   nao_encontrada: [404, 'Solicitação não encontrada.'],
   ja_analisada: [409, 'Esta solicitação já foi analisada.'],
@@ -237,7 +239,7 @@ const ERROS_DECISAO = {
   aprovacao_anterior: [409, 'Esta conta já possui aprovação de motorista. A recusa foi interrompida para não desfazer essa aprovação.']
 };
 
-export async function decidirSolicitacaoMotorista(uid, decisao) {
+export async function decidirSolicitacaoMotorista(uid, decisao, motivoInformado = '') {
   if (typeof uid !== 'string' || !/^[A-Za-z0-9_-]{1,128}$/.test(uid)) {
     return { ok: false, status: 400, error: 'UID inválido.' };
   }
@@ -252,6 +254,7 @@ export async function decidirSolicitacaoMotorista(uid, decisao) {
     const aplicado = await db.runTransaction(async tx => {
       const solicitacaoRef = db.collection('solicitacoes_motoristas').doc(uid);
       const usuarioRef = db.collection('usuarios').doc(uid);
+      const conferenciaRef = db.collection('cnh_admin').doc(uid);
       const solicitacaoDoc = await tx.get(solicitacaoRef);
       const usuarioDoc = await tx.get(usuarioRef);
       if (!solicitacaoDoc.exists) throw erroDecisao('nao_encontrada');
@@ -259,17 +262,26 @@ export async function decidirSolicitacaoMotorista(uid, decisao) {
       if (Object.hasOwn(solicitacao, 'motoristaUid') && solicitacao.motoristaUid !== uid) throw erroDecisao('uid_divergente');
       const usuario = usuarioDoc.exists ? usuarioDoc.data() || {} : null;
       if (solicitacao.status !== 'PENDENTE' && !(decisao==='aprovar' && solicitacao.status==='APROVADA' && usuario?.condutorValidado===false)) throw erroDecisao('ja_analisada');
+      const conferencia = await tx.get(conferenciaRef);
+      const registro = conferencia.exists ? conferencia.data() : null;
       if (decisao === 'aprovar') {
         if (!usuario || usuario.status !== 'ATIVO') throw erroDecisao('usuario_inativo');
-        const conferencia=await tx.get(db.collection('cnh_admin').doc(uid));
-        if(!conferencia.exists || !avaliarCnh(conferencia.data()).apta)throw erroDecisao('cnh_pendente');
-        tx.update(usuarioRef, { condutorValidado: true, papelAtivo: 'MOTORISTA' });
-        tx.update(solicitacaoRef, { status: 'APROVADA' });
+        if(registro&&!conferenciaVinculada(registro))throw erroDecisao('cnh_documento_divergente');if(registro&&identidadeDivergenteNaoResolvida(registro,usuario.nome||''))throw erroDecisao('cnh_identidade_divergente');if(!registro||!avaliarRegistroCnh(registro,undefined,usuario.nome||'').apta)throw erroDecisao('cnh_pendente');
+        tx.update(usuarioRef, { condutorValidado: true, papelAtivo: 'MOTORISTA', cnhValidade: registro.validade, cnhValidadeFimMs: fimDoDiaSP(registro.validade), cnhRevisaoNecessaria: false });
+        tx.update(conferenciaRef, { decisaoPdfSha256: registro.pdfSha256 ?? null, decisaoPdfVersao: registro.pdfVersao ?? null, aprovadoEm: new Date().toISOString() });
+        tx.update(solicitacaoRef, { status: 'APROVADA', motivoRecusa: null });
         return { statusSolicitacao: 'APROVADA', acao: 'motorista aprovado', motivo: 'Solicitação aprovada no Firestore' };
       }
       if (usuario?.condutorValidado === true) throw erroDecisao('aprovacao_anterior');
-      tx.update(solicitacaoRef, { status: 'RECUSADA' });
-      return { statusSolicitacao: 'RECUSADA', acao: 'motorista recusado', motivo: 'Solicitação recusada no Firestore' };
+      const motivoExplicito = textoSeguro(motivoInformado, 500);
+      const parecerVinculado = registro && conferenciaVinculada(registro) ? textoSeguro(registro.observacao, 500) : '';
+      const motivoRecusa = motivoExplicito || parecerVinculado || null;
+      const camposRecusa = motivoRecusa ? { status: 'RECUSADA', motivoRecusa, recusadoEm: new Date().toISOString() } : { status: 'RECUSADA' };
+      tx.update(solicitacaoRef, camposRecusa);
+      if (usuario) {
+        tx.update(usuarioRef, { condutorValidado: false, cnhRevisaoNecessaria: false, ...(usuario.papelAtivo === 'MOTORISTA' ? { papelAtivo: 'PASSAGEIRO' } : {}) });
+      }
+      return { statusSolicitacao: 'RECUSADA', acao: 'motorista recusado', motivo: motivoRecusa ? `Solicitação recusada no Firestore: ${motivoRecusa}` : 'Solicitação recusada no Firestore', motivoRecusa };
     });
     return { ok: true, uid, ...aplicado };
   } catch (erro) {

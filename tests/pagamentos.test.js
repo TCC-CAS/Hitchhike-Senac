@@ -31,7 +31,16 @@ function criarFirestore(inicial = {}) {
       const consulta = {
         doc(id = `auto${++seq}`) {
           const chave = `${nome}/${id}`;
-          return { id, path: chave, get: async () => lerDoc(chave), set: async dados => { docs.set(chave, { ...dados }); } };
+          return {
+            id,
+            path: chave,
+            get: async () => lerDoc(chave),
+            set: async dados => { docs.set(chave, { ...dados }); },
+            update: async campos => {
+              if (!docs.has(chave)) throw new Error('documento inexistente');
+              docs.set(chave, { ...docs.get(chave), ...campos });
+            }
+          };
         },
         where(campo, _op, valor) { filtros.push([campo, valor]); return consulta; },
         limit(n) { limite = n; return consulta; },

@@ -5,3 +5,14 @@
 .live-banner{display:flex;gap:12px;align-items:center;margin:0 0 16px;padding:14px 16px;border-radius:12px;background:#e7f2ea;color:var(--ink)}.live-banner span{color:var(--muted)}.live-banner.offline{background:#f8ece8}td .primary,td .secondary{margin:0 4px 4px 0}
 
 .cnh-panel{margin-top:24px}.cnh-note{padding:0 24px 18px}.cnh-check{display:flex;align-items:flex-start;gap:10px;font-size:14px}.cnh-check input{width:auto;margin-top:4px}.cnh-panel td{white-space:normal;min-width:130px}.cnh-panel th{font-size:13px}.cnh-panel .sub{font-size:13px}
+.cnh-doc{background:#f4f7f2;border:1px solid var(--line);border-radius:9px;padding:12px 14px;margin-bottom:12px}.cnh-doc-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.cnh-preanalise{background:#fafbf8;border:1px solid var(--line);border-radius:9px;padding:14px;margin-bottom:14px}.cnh-preanalise-topo{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.cnh-checklist{list-style:none;padding:0;margin:10px 0 0;display:grid;gap:8px}.cnh-checklist li{display:flex;align-items:flex-start;gap:10px;padding:9px 11px;border-radius:7px;font-size:12px;border:1px solid var(--line);background:#fff}
+.cnh-icone{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;font-weight:700;font-size:11px;flex-shrink:0;margin-top:1px}
+.cnh-item-ok{border-color:#cfe2c2!important;background:#f4f9ef!important}.cnh-item-ok .cnh-icone{background:#d6ee9e;color:var(--ink)}
+.cnh-item-erro{border-color:#ecc6be!important;background:#fdf3f1!important}.cnh-item-erro .cnh-icone{background:#fbe9e5;color:var(--red)}
+.cnh-item-pendente{border-color:#ead9ab!important;background:#fdf9ec!important}.cnh-item-pendente .cnh-icone{background:#fbf1d9;color:#987821}
+.cnh-divergencia-box{background:#fdf3f1;border:1px solid #ecc6be;color:var(--red);border-radius:8px;padding:10px 12px;margin:10px 0;font-size:12px}.cnh-divergencia-box p{margin-top:4px;color:var(--ink)}
+.cnh-alerta-id{color:var(--red)!important;font-weight:600}
+.cnh-check-divergencia{background:#fdf3f1;border:1px solid #ecc6be;border-radius:8px;padding:10px 12px}
+.cnh-manual-details{border:1px dashed var(--line);border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:12px}.cnh-manual-details summary{cursor:pointer;font-weight:600;color:var(--muted)}

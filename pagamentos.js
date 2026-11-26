@@ -7,6 +7,7 @@ import { getAuth } from 'firebase-admin/auth';
 import { obterFirestore } from './firebaseMotoristas.js';
 import { calcularSplit, conferirRepasse, lerTarifaEstimadaBp } from './split.js';
 import { criarOauthMercadoPago } from './mercadopagoOauth.js';
+import { caronaAceitaPagamento } from './caronasCiclo.js';
 
 const MP_API = 'https://api.mercadopago.com';
 const TAXA_PERCENTUAL = 25;
@@ -233,6 +234,7 @@ export function criarTratadorPagamentos(deps = {}) {
     if (!carona.exists) falhar(404, 'Carona não encontrada.');
     const dadosCarona = carona.data() || {};
     if (dadosCarona.status === 'CANCELADA') falhar(409, 'Esta carona foi cancelada.');
+    if (!caronaAceitaPagamento(dadosCarona, d.agora().getTime())) falhar(409, 'Esta carona não aceita mais pagamentos (cancelada, concluída ou expirada).');
     if (!dadosCarona.motoristaUid || dadosCarona.motoristaUid !== pedido.motoristaUid || dadosCarona.motoristaUid === uid) {
       falhar(409, 'Dados da carona inconsistentes.');
     }
@@ -324,6 +326,13 @@ export function criarTratadorPagamentos(deps = {}) {
       criadoEm: agora,
       atualizadoEm: agora
     });
+    // Condição de corrida com o cancelamento: o cancelamento só prossegue sem pagamentos em aberto, e o pagamento
+    // só é entregue ao app se a carona continuar elegível depois de registrado. Caso contrário o registro é encerrado.
+    const caronaDepois = await db.collection('caronas').doc(caronaId).get();
+    if (!caronaDepois.exists || !caronaAceitaPagamento(caronaDepois.data() || {}, d.agora().getTime())) {
+      await ref.update({ status: 'CANCELADO', mpStatusDetail: 'carona_indisponivel', atualizadoEm: d.agora() });
+      falhar(409, 'Esta carona foi cancelada enquanto o checkout era criado. Nenhum pagamento foi iniciado.');
+    }
     json(res, 201, {
       pagamentoId,
       checkoutUrl: urlCheckout,
