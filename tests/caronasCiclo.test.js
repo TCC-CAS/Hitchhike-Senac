@@ -447,3 +447,57 @@ test('avaliação às cegas unilateral é revelada automaticamente após 48 hora
   assert.equal(rep.quantidade, 1);
   assert.equal(rep.media, 3);
 });
+
+
+for (const cenario of ['INATIVO', 'SEM_PERFIL']) {
+  test(`Bloqueia aceite de passageiro ${cenario} sem consumir vaga`, async () => {
+    const amb = criarAmbiente([
+      ['caronas/cBloqueio', {
+        id: 'cBloqueio',
+        motoristaUid: 'mot1',
+        dataHoraSaida: new Date(SAIDA_FUTURA),
+        vagasTotais: 1,
+        vagasDisponiveis: 1,
+        valor: 10,
+        status: 'ABERTA'
+      }],
+      ['solicitacoes_caronas/cBloqueio_pass1', {
+        id: 'cBloqueio_pass1',
+        caronaId: 'cBloqueio',
+        motoristaUid: 'mot1',
+        passageiroUid: 'pass1',
+        status: 'PENDENTE'
+      }]
+    ]);
+
+    if (cenario === 'INATIVO') {
+      amb.fs.docs.set('usuarios/pass1', {
+        ...amb.fs.docs.get('usuarios/pass1'),
+        status: 'INATIVO'
+      });
+    } else {
+      amb.fs.docs.delete('usuarios/pass1');
+    }
+
+    await assert.rejects(
+      () => amb.servico.aceitar('mot1', 'cBloqueio', 'pass1'),
+      err => err.codigo === 'PASSAGEIRO_INATIVO'
+        && err.status === 409
+    );
+
+    assert.equal(
+      amb.fs.docs.get('caronas/cBloqueio').vagasDisponiveis,
+      1
+    );
+
+    assert.equal(
+      amb.fs.docs.get('caronas/cBloqueio').status,
+      'ABERTA'
+    );
+
+    assert.equal(
+      amb.fs.docs.get('solicitacoes_caronas/cBloqueio_pass1').status,
+      'PENDENTE'
+    );
+  });
+}

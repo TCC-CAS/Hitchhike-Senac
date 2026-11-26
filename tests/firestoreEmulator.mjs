@@ -169,7 +169,7 @@ test('Permite os tres dominios institucionais configurados', async () => {
     'sp.senac.br',
     'senac.br'
   ]) {
-    const db = usuario('teste', `teste@${dominio}`);
+    const db = usuario('passageiro', `passageiro@${dominio}`);
     await assertSucceeds(getDoc(doc(db, 'caronas', 'carona1')));
   }
 });
@@ -326,7 +326,7 @@ test('Bloqueia aceite sem decremento de vaga', async () => {
   );
 });
 
-test('Verifica aceite atomico permitido pelas regras atuais', async () => {
+test('Bloqueia aceite atomico direto pelo Firestore', async () => {
   await assertSucceeds(
     setDoc(doc(passageiro(), 'solicitacoes_caronas',
       'carona1_passageiro'), solicitacao())
@@ -346,7 +346,7 @@ test('Verifica aceite atomico permitido pelas regras atuais', async () => {
     status: 'ACEITA'
   });
 
-  await assertSucceeds(batch.commit());
+  await assertFails(batch.commit());
 });
 
 for (const colecao of [
@@ -364,3 +364,80 @@ for (const colecao of [
     await assertFails(setDoc(ref, { adulterado: true }));
   });
 }
+
+
+test('Bloqueia campos extras no cadastro', async () => {
+  const db = usuario('novo', 'novo@senacsp.edu.br');
+  await assertFails(
+    setDoc(doc(db, 'usuarios', 'novo'), perfil('novo', {
+      administrador: true
+    }))
+  );
+});
+
+test('Bloqueia alteracao direta do nome', async () => {
+  await assertFails(
+    updateDoc(doc(passageiro(), 'usuarios', 'passageiro'), {
+      nome: 'Outra Identidade'
+    })
+  );
+});
+
+test('Bloqueia inclusao de campo administrativo', async () => {
+  await assertFails(
+    updateDoc(doc(passageiro(), 'usuarios', 'passageiro'), {
+      administrador: true
+    })
+  );
+});
+
+test('Permite motorista apto mudar para passageiro', async () => {
+  await assertSucceeds(
+    updateDoc(doc(motorista(), 'usuarios', 'motorista'), {
+      papelAtivo: 'PASSAGEIRO'
+    })
+  );
+});
+
+test('Bloqueia usuario sem perfil consultando caronas', async () => {
+  const db = usuario('semperfil', 'semperfil@senacsp.edu.br');
+  await assertFails(getDoc(doc(db, 'caronas', 'carona1')));
+});
+
+test('Bloqueia operacoes de usuario inativo', async () => {
+  await env.withSecurityRulesDisabled(async context => {
+    await setDoc(
+      doc(context.firestore(), 'usuarios', 'inativo'),
+      perfil('inativo', { status: 'INATIVO' })
+    );
+  });
+
+  const db = usuario('inativo', 'inativo@senacsp.edu.br');
+
+  await assertFails(getDoc(doc(db, 'caronas', 'carona1')));
+
+  await assertFails(
+    setDoc(doc(db, 'solicitacoes_caronas',
+      'carona1_inativo'), solicitacao('inativo'))
+  );
+
+  await assertFails(
+    updateDoc(doc(db, 'usuarios', 'inativo'), {
+      papelAtivo: 'PASSAGEIRO'
+    })
+  );
+});
+
+test('Bloqueia recusa direta pelo Firestore', async () => {
+  await assertSucceeds(
+    setDoc(doc(passageiro(), 'solicitacoes_caronas',
+      'carona1_passageiro'), solicitacao())
+  );
+
+  await assertFails(
+    updateDoc(doc(motorista(), 'solicitacoes_caronas',
+      'carona1_passageiro'), {
+      status: 'RECUSADA'
+    })
+  );
+});

@@ -13,6 +13,11 @@ service cloud.firestore {
     // Verifica no próprio servidor do Firestore se o motorista está ativo, validado,
     // sem revisão pendente e com CNH vigente no instante da operação (request.time),
     // impedindo que cache local ou estado offline contornem a autorização.
+    function usuarioAtivo(uid) {
+      return exists(/databases/$(database)/documents/usuarios/$(uid))
+        && get(/databases/$(database)/documents/usuarios/$(uid)).data.status == 'ATIVO';
+    }
+
     function motoristaApto(uid) {
       let perfil = get(/databases/$(database)/documents/usuarios/$(uid)).data;
       return perfil.status == 'ATIVO'
@@ -50,6 +55,10 @@ service cloud.firestore {
 
       allow create: if emailInstitucionalVerificado()
         && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly([
+          'nome', 'curso', 'instituicao', 'email',
+          'papelAtivo', 'status', 'condutorValidado'
+        ])
         && request.resource.data.email is string
         && request.resource.data.email.lower() == request.auth.token.email.lower()
         && request.resource.data.nome is string
@@ -65,8 +74,9 @@ service cloud.firestore {
 
       allow update: if emailInstitucionalVerificado()
         && request.auth.uid == uid
-        && !request.resource.data.diff(resource.data).affectedKeys()
-            .hasAny(['condutorValidado', 'status', 'cnhValidade', 'cnhValidadeFimMs', 'cnhRevisaoNecessaria', 'email'])
+        && resource.data.status == 'ATIVO'
+        && request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['papelAtivo'])
         && (
           request.resource.data.papelAtivo == 'PASSAGEIRO'
           || (
@@ -90,14 +100,11 @@ service cloud.firestore {
       allow write: if false;
     }
 
-    // 4. Caronas: publicação exige motorista aprovado e com CNH vigente.
-    // Atualização vincula atomicamente (via getAfter) o decremento de 1 vaga à transição
-    // PENDENTE -> ACEITA da solicitação determinística ultimaSolicitacaoAceitaId, impedindo
-    // decrementos arbitrários ou aceites sem decremento correspondente por clientes modificados.
-    // Transições de ciclo de vida (EM_ANDAMENTO, CONCLUIDA, CANCELADA com verificação financeira, EXPIRADA)
-    // ocorrem via backend Admin SDK.
+    // 4. Caronas: publicacao exige motorista aprovado e CNH vigente.
+    // Leitura exige usuario institucional com perfil ativo.
+    // Atualizacoes de vagas e ciclo de vida sao exclusivas do backend.
     match /caronas/{caronaId} {
-      allow read: if emailInstitucionalVerificado();
+      allow read: if emailInstitucionalVerificado() && usuarioAtivo(request.auth.uid);
 
       allow create: if emailInstitucionalVerificado()
         && request.resource.data.keys().hasOnly([
@@ -123,35 +130,15 @@ service cloud.firestore {
         && request.resource.data.dataHoraSaida > request.time
         && motoristaApto(request.auth.uid);
 
-      allow update: if emailInstitucionalVerificado()
-        && resource.data.motoristaUid == request.auth.uid
-        && request.resource.data.motoristaUid == resource.data.motoristaUid
-        && motoristaApto(request.auth.uid)
-        && resource.data.status == 'ABERTA'
-        && resource.data.vagasDisponiveis >= 1
-        && resource.data.dataHoraSaida > request.time
-        && request.resource.data.diff(resource.data).affectedKeys()
-            .hasOnly(['vagasDisponiveis', 'status', 'ultimaSolicitacaoAceitaId'])
-        && request.resource.data.ultimaSolicitacaoAceitaId is string
-        && request.resource.data.vagasDisponiveis == resource.data.vagasDisponiveis - 1
-        && (
-          (request.resource.data.vagasDisponiveis > 0 && request.resource.data.status == 'ABERTA')
-          || (request.resource.data.vagasDisponiveis == 0 && request.resource.data.status == 'LOTADA')
-        )
-        && exists(/databases/$(database)/documents/solicitacoes_caronas/$(request.resource.data.ultimaSolicitacaoAceitaId))
-        && get(/databases/$(database)/documents/solicitacoes_caronas/$(request.resource.data.ultimaSolicitacaoAceitaId)).data.caronaId == caronaId
-        && get(/databases/$(database)/documents/solicitacoes_caronas/$(request.resource.data.ultimaSolicitacaoAceitaId)).data.motoristaUid == request.auth.uid
-        && get(/databases/$(database)/documents/solicitacoes_caronas/$(request.resource.data.ultimaSolicitacaoAceitaId)).data.status == 'PENDENTE'
-        && getAfter(/databases/$(database)/documents/solicitacoes_caronas/$(request.resource.data.ultimaSolicitacaoAceitaId)).data.status == 'ACEITA';
+      allow update: if false;
 
       allow delete: if false;
     }
 
-    // 5. Solicitações de caronas:
-    // - Leitura restrita aos participantes (passageiro solicitante ou motorista da carona);
-    // - Criação com ID determinístico {caronaId}_{passageiroUid}, bloqueando duplicidade (!exists),
-    //   autosolicitação e solicitações em caronas lotadas, canceladas, iniciadas, concluídas ou vencidas;
-    // - Atualização: o aceite exige vínculo atômico via getAfter() com o decremento de 1 vaga em caronas/{caronaId}.
+    // 5. Solicitacoes de caronas:
+    // Leitura restrita aos participantes.
+    // Criacao exige perfil ativo e ID deterministico.
+    // Aceite, recusa e demais atualizacoes sao exclusivos do backend.
     match /solicitacoes_caronas/{solicitacaoId} {
       allow read: if emailInstitucionalVerificado()
         && (resource == null
@@ -166,6 +153,7 @@ service cloud.firestore {
         && request.resource.data.caronaId is string
         && solicitacaoId == request.resource.data.caronaId + '_' + request.auth.uid
         && !exists(/databases/$(database)/documents/solicitacoes_caronas/$(solicitacaoId))
+        && usuarioAtivo(request.auth.uid)
         && request.resource.data.passageiroUid == request.auth.uid
         && request.resource.data.motoristaUid != request.auth.uid
         && request.resource.data.status == 'PENDENTE'
@@ -175,24 +163,7 @@ service cloud.firestore {
         && get(/databases/$(database)/documents/caronas/$(request.resource.data.caronaId)).data.vagasDisponiveis >= 1
         && get(/databases/$(database)/documents/caronas/$(request.resource.data.caronaId)).data.dataHoraSaida > request.time;
 
-      allow update: if emailInstitucionalVerificado()
-        && resource.data.motoristaUid == request.auth.uid
-        && resource.data.status == 'PENDENTE'
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
-        && (
-          request.resource.data.status == 'RECUSADA'
-          || (
-            request.resource.data.status == 'ACEITA'
-            && motoristaApto(request.auth.uid)
-            && get(/databases/$(database)/documents/caronas/$(resource.data.caronaId)).data.motoristaUid == request.auth.uid
-            && get(/databases/$(database)/documents/caronas/$(resource.data.caronaId)).data.status == 'ABERTA'
-            && get(/databases/$(database)/documents/caronas/$(resource.data.caronaId)).data.vagasDisponiveis >= 1
-            && get(/databases/$(database)/documents/caronas/$(resource.data.caronaId)).data.dataHoraSaida > request.time
-            && getAfter(/databases/$(database)/documents/caronas/$(resource.data.caronaId)).data.vagasDisponiveis
-                == get(/databases/$(database)/documents/caronas/$(resource.data.caronaId)).data.vagasDisponiveis - 1
-            && getAfter(/databases/$(database)/documents/caronas/$(resource.data.caronaId)).data.ultimaSolicitacaoAceitaId == solicitacaoId
-          )
-        );
+      allow update: if false;
 
       allow delete: if false;
     }

@@ -109,6 +109,11 @@ export function criarServicoCaronas(deps = {}) {
       const vagas = carona.dados.vagasDisponiveis;
       if (!Number.isInteger(vagas) || vagas < 1) falhar(409, 'SEM_VAGAS', MENSAGEM_ESTADO.LOTADA);
       await exigirMotoristaApto(tx, uid, agora);
+      const passageiroDoc = await tx.get(col('usuarios').doc(passageiroUid));
+      if (!passageiroDoc.exists || (passageiroDoc.data() || {}).status !== 'ATIVO') {
+        falhar(409, 'PASSAGEIRO_INATIVO', 'O passageiro nao possui um perfil ativo.');
+      }
+
       const novasVagas = vagas - 1;
       const novoStatus = novasVagas === 0 ? 'LOTADA' : 'ABERTA';
       tx.update(carona.ref, { vagasDisponiveis: novasVagas, status: novoStatus, ultimaSolicitacaoAceitaId: pedidoRef.id, atualizadoEm: d.serverTimestamp() });
