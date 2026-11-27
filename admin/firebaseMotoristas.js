@@ -291,3 +291,53 @@ export async function decidirSolicitacaoMotorista(uid, decisao, motivoInformado 
     return { ok: false, status: 503, error: 'Não foi possível registrar a decisão no Firestore. Nenhuma alteração foi confirmada.' };
   }
 }
+
+/** Monta a linha financeira do painel. Valores estimados e reconciliados ficam separados. */
+export function montarPagamento(id, dados) {
+  if (!dados || typeof dados !== 'object') return null;
+  const c = valor => (Number.isSafeInteger(valor) ? valor : null);
+  return {
+    id: textoSeguro(id, 128),
+    caronaId: textoSeguro(dados.caronaId, 128),
+    status: textoSeguro(dados.status, 30),
+    mpStatus: textoSeguro(dados.mpStatus, 30),
+    ambiente: textoSeguro(dados.ambiente, 20),
+    split: dados.split === true,
+    somentePix: dados.somentePix === true,
+    valorBaseCentavos: c(dados.valorBaseCentavos),
+    taxaCentavos: c(dados.taxaCentavos),
+    totalCentavos: c(dados.totalCentavos),
+    // Estimativas calculadas na criação da preferência (não são repasse comprovado).
+    tarifaEstimadaCentavos: c(dados.tarifaEstimadaCentavos),
+    tarifaEstimadaBp: c(dados.tarifaEstimadaBp),
+    marketplaceFeeCentavos: c(dados.marketplaceFeeCentavos),
+    motoristaPrevistoCentavos: c(dados.motoristaPrevistoCentavos),
+    // Valores reais, só preenchidos após conferência com a API do Mercado Pago.
+    reconciliacao: textoSeguro(dados.reconciliacao, 20),
+    tarifaRealCentavos: c(dados.tarifaRealCentavos),
+    comissaoRealCentavos: c(dados.comissaoRealCentavos),
+    liquidoMotoristaCentavos: c(dados.liquidoMotoristaCentavos),
+    diferencaMotoristaCentavos: c(dados.diferencaMotoristaCentavos),
+    divergenciaFinanceira: dados.divergenciaFinanceira === true,
+    criadoEm: dataIso(dados.criadoEm)
+  };
+}
+
+export async function listarPagamentos() {
+  const vazio = mensagem => ({ disponivel: false, mensagem, limitado: false, pagamentos: [] });
+  const db = await banco();
+  if (!db) return vazio(detalhe || 'Integração com o Firebase indisponível.');
+  try {
+    const consulta = await db.collection('pagamentos').orderBy(FieldPath.documentId()).limit(101).get();
+    const docs = consulta.docs || [];
+    const pagamentos = docs
+      .slice(0, 100)
+      .map(doc => montarPagamento(doc.id, doc.data()))
+      .filter(Boolean)
+      .sort((a, b) => (b.criadoEm || '').localeCompare(a.criadoEm || ''));
+    return { disponivel: true, mensagem: '', limitado: docs.length > 100, pagamentos };
+  } catch {
+    console.error('Falha ao consultar pagamentos no Firestore.');
+    return vazio('Não foi possível consultar os pagamentos no Firestore. O painel local continua ativo.');
+  }
+}

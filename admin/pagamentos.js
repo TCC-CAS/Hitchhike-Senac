@@ -419,6 +419,10 @@ export function criarTratadorPagamentos(deps = {}) {
     const caminho = url.pathname;
     try {
       let status;
+      if (caminho.startsWith('/api/mercadopago/oauth/')) {
+        if (!(await oauth.tratar(req, res, url, autenticar))) falhar(404, 'Rota não encontrada.');
+        return true;
+      }
       if (caminho === '/api/pagamentos/preferencia') {
         if (req.method !== 'POST') falhar(405, 'Método não permitido.');
         await criarPreferencia(req, res);

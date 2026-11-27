@@ -10,7 +10,7 @@ import { tratarCnhMotorista } from './cnhMotoristaApi.js';
 import { tratarCaronas, servicoCaronas } from './caronasApi.js';
 import { servicoDocumentos } from './cnhDocumentos.js';
 import { avisarConfiguracaoCnh } from './cnhStorage.js';
-import { listarSolicitacoesMotoristas, decidirSolicitacaoMotorista, listarUsuarios, listarCaronas, auditoriaDeTeste } from './firebaseMotoristas.js';
+import { listarSolicitacoesMotoristas, decidirSolicitacaoMotorista, listarUsuarios, listarCaronas, listarPagamentos, auditoriaDeTeste } from './firebaseMotoristas.js';
 const prod=process.env.NODE_ENV==='production';
 const publicDir=fileURLToPath(new URL('./public/',import.meta.url));
 const attempts=new Map();
@@ -30,7 +30,7 @@ export const server=http.createServer(async(req,res)=>{
  try{
  const url=new URL(req.url,'http://localhost');const path=url.pathname;
   /* Pagamentos de teste: autenticação Firebase ou assinatura do webhook, tratadas no módulo (sem cookie administrativo). */
-  if(path.startsWith('/api/pagamentos/')&&await tratarPagamentos(req,res,url))return;
+  if((path.startsWith('/api/pagamentos/')||path.startsWith('/api/mercadopago/'))&&await tratarPagamentos(req,res,url))return;
   /* CNH enviada pelo motorista (app Android): autenticação por Firebase ID Token tratada no módulo; sem cookie administrativo. */
   if(path.startsWith('/api/motoristas/')&&await tratarCnhMotorista(req,res,url))return;
   /* Ciclo de vida das caronas, avaliações às cegas e reputação (app Android): Firebase ID Token tratado no módulo. */
@@ -68,6 +68,7 @@ export const server=http.createServer(async(req,res)=>{
  if(path==='/api/solicitacoes-motoristas'&&req.method==='GET'){json(res,200,await listarSolicitacoesMotoristas());return;}
  if(path==='/api/usuarios'&&req.method==='GET'){json(res,200,await listarUsuarios());return;}
  if(path==='/api/caronas'&&req.method==='GET'){json(res,200,await listarCaronas());return;}
+ if(path==='/api/pagamentos-admin'&&req.method==='GET'){json(res,200,await listarPagamentos());return;}
  const decisaoMatch=path.match(/^\/api\/solicitacoes-motoristas\/([A-Za-z0-9_-]{1,128})\/decisao$/);
  if(decisaoMatch&&req.method==='POST'){const b=await body(req);if(b.decisao!=='aprovar'&&b.decisao!=='recusar')fail('Decisão inválida.');const motivo=typeof b.motivo==='string'?b.motivo.trim().slice(0,500):'';const resultado=await decidirSolicitacaoMotorista(decisaoMatch[1],b.decisao,motivo);if(!resultado.ok){json(res,resultado.status,{error:resultado.error,decisaoAplicada:false,auditoria:false});return;}try{(auditoriaDeTeste()||audit)(admin.email,resultado.acao,resultado.uid,resultado.motivo);}catch{json(res,500,{error:'A decisão foi aplicada no Firestore, mas não foi registrada no histórico.',decisaoAplicada:true,auditoria:false,status:resultado.statusSolicitacao});return;}json(res,200,{ok:true,decisaoAplicada:true,auditoria:true,status:resultado.statusSolicitacao});return;}
  if(path==='/api/data'&&req.method==='GET'){json(res,200,{admin:{email:admin.email},demo:db.prepare("SELECT value FROM settings WHERE key='demo'").get()?.value==='true',people:db.prepare('SELECT * FROM people ORDER BY id DESC').all(),trips:tripFilter(url),reports:db.prepare('SELECT r.*,p.name target_name,p.role target_role FROM reports r JOIN people p ON p.id=r.target_id ORDER BY r.id DESC').all(),audit:db.prepare('SELECT * FROM audit ORDER BY id DESC LIMIT 200').all()});return;}
